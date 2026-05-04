@@ -1,0 +1,29 @@
+{
+    "tests_by_mangled_function_name": {
+        "example_math.x_triangle": [
+            "tests/test_example_math.py::test_case_3",
+            "tests/test_example_math.py::test_case_2",
+            "tests/test_example_math.py::test_case_8",
+            "tests/test_example_math.py::test_case_1",
+            "tests/test_example_math.py::test_case_4",
+            "tests/test_example_math.py::test_case_0",
+            "tests/test_example_math.py::test_case_9",
+            "tests/test_example_math.py::test_case_6",
+            "tests/test_example_math.py::test_case_5",
+            "tests/test_example_math.py::test_case_7"
+        ]
+    },
+    "duration_by_test": {
+        "tests/test_example_math.py::test_case_0": 0.00024250199999187316,
+        "tests/test_example_math.py::test_case_1": 0.0001461470003505383,
+        "tests/test_example_math.py::test_case_2": 0.00023277199989024666,
+        "tests/test_example_math.py::test_case_3": 0.000154240000028949,
+        "tests/test_example_math.py::test_case_4": 0.0002256699999634293,
+        "tests/test_example_math.py::test_case_5": 0.00015601200016135408,
+        "tests/test_example_math.py::test_case_6": 0.00012417499988259806,
+        "tests/test_example_math.py::test_case_7": 0.00024229200016634422,
+        "tests/test_example_math.py::test_case_8": 0.00013192100027481501,
+        "tests/test_example_math.py::test_case_9": 0.00012527400008366385
+    },
+    "stats_time": 0.22619454400000005
+}

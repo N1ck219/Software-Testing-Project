@@ -69,7 +69,7 @@ fandango_string_weight = 0.4
 fandango_faker_string_weight = 0.0
 
 [seeding]
-seed = 1777901395133004500
+seed = 1777907060980186220
 constant_seeding = true
 initial_population_seeding = false
 initial_population_data = ""
