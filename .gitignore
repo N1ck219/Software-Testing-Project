@@ -10,5 +10,13 @@ ENV/
 .pytest_cache/
 .benchmarks/
 
+# Execution Results & Reports
+results/
+tests/
+pynguin-report/
+.mutmut-cache
+.coverage
+htmlcov/
+
 # OS
 .DS_Store

@@ -1,50 +1,95 @@
 # Software Testing Project - Triangle Classification
 
-Questo progetto utilizza **Pynguin** per la generazione automatica di test unitari e **Pytest** per la loro esecuzione e l'analisi della copertura del codice.
+Progetto per l'automazione del testing Python utilizzando **Pynguin** per la generazione dei test e **Mutmut** per la Mutation Analysis. 
 
-## 🛠️ Setup del Progetto
+---
 
-1. **Creazione dell'ambiente virtuale:**
-   ```bash
-   python3 -m venv .venv
-   ```
+## 🚀 Setup del Progetto
 
-2. **Attivazione dell'ambiente virtuale:**
-   ```bash
-   source .venv/bin/activate
-   ```
+Segui questi passaggi per preparare l'ambiente di lavoro.
 
-3. **Installazione delle dipendenze:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## 🧪 Generazione dei Test con Pynguin
-
-Per generare i test automaticamente, segui questi passaggi:
-
-1. **Configura la variabile d'ambiente di sicurezza:**
-   Pynguin richiede questa conferma poiché esegue il codice durante l'analisi.
-   ```bash
-   export PYNGUIN_DANGER_AWARE=true
-   ```
-
-2. **Esegui la generazione:**
-   Il comando seguente analizza il modulo `triangle` e salva i test nella cartella `tests/`.
-   ```bash
-   pynguin --project-path ./benchmark --module-name triangle --output-path ./tests
-   ```
-
-## 🚀 Esecuzione dei Test e Coverage
-
-Grazie alla configurazione presente in `pytest.ini` e `.coveragerc`, l'esecuzione dei test e la generazione del report di coverage sono completamente automatiche.
-
-Per eseguire i test e generare i report:
+### 1. Attivazione dell'Ambiente Virtuale
+Attiva l'ambiente virtuale per isolare le dipendenze del progetto:
 ```bash
-pytest ./tests
+source .venv/bin/activate
 ```
 
-### Output dei risultati
-Dopo l'esecuzione, troverai tutti i risultati nella cartella `results/pynguin/`:
-*   **Report HTML**: `results/pynguin/htmlcov/index.html` (apribile nel browser).
-*   **Dati Coverage**: `results/pynguin/.coverage`.
+### 2. Installazione delle Dipendenze
+Installa tutti i pacchetti necessari (Pytest, Pynguin, Mutmut, ecc.):
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 🧪 Generazione dei Test (Pynguin)
+
+Utilizziamo Pynguin per generare automaticamente una suite di test basata sull'analisi del codice.
+
+### 3. Configurazione Variabile d'Ambiente
+Permette a Pynguin di eseguire il codice per generare i test (necessario per motivi di sicurezza):
+```bash
+export PYNGUIN_DANGER_AWARE=true
+```
+
+### 4. Generazione della Suite di Test
+Esegue Pynguin sul modulo `triangle` per creare i test nella cartella `tests/`:
+```bash
+pynguin --project-path ./benchmark --module-name triangle --output-path ./tests --assertion-generation MUTATION_ANALYSIS
+```
+
+---
+
+## 📊 Esecuzione Test e Coverage (Pytest)
+
+Una volta generati i test, verifichiamo quanto codice viene effettivamente coperto.
+
+### 5. Esecuzione dei Test e Calcolo Coverage
+Avvia la suite di test e genera automaticamente i report di copertura:
+```bash
+pytest
+```
+*I risultati (HTML e dati grezzi) verranno salvati nella cartella `results/pynguin/`.*
+
+---
+
+## 👾 Mutation Testing (Mutmut)
+
+Verifichiamo la robustezza dei test introducendo piccoli "errori" (mutanti) nel codice originale.
+
+### 6. Esecuzione della Mutation Analysis
+Avvia Mutmut per generare e testare i mutanti:
+```bash
+mutmut run
+```
+
+### 7. Generazione del Report HTML
+Converte i risultati della mutation analysis in un formato leggibile nel browser:
+```bash
+mutmut html && rm -rf results/mutmut/htmlcov && mv html results/mutmut/htmlcov
+```
+
+---
+
+## 🔍 Visualizzazione dei Risultati
+
+### 8. Sommario dei Risultati
+Visualizza un riepilogo veloce dei mutanti (quanti uccisi, quanti sopravvissuti):
+```bash
+mutmut results
+```
+
+### 9. Analisi di un Singolo Mutante
+Mostra esattamente quale modifica è stata apportata a un mutante specifico tramite il suo ID:
+```bash
+mutmut show <id>
+```
+
+---
+
+## 📁 Struttura della Repository
+Tutti i file generati durante l'esecuzione sono ignorati da Git per mantenere il progetto pulito:
+- `tests/`: Suite di test generata.
+- `results/`: Tutti i report (Coverage e Mutation).
+- `.mutmut-cache`: Database interno di Mutmut.
+- `.pytest_cache/`: Cache di Pytest.
