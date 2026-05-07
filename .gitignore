@@ -11,12 +11,20 @@ ENV/
 .benchmarks/
 
 # Execution Results & Reports
-results/
-tests/
-pynguin-report/
+results/**/*
+!results/**/
+!results/**/.gitkeep
+tests/**/*
+!tests/**/
+!tests/**/.gitkeep
+pynguin-report/**/*
+!pynguin-report/**/
+!pynguin-report/**/.gitkeep
 .mutmut-cache
 .coverage
 htmlcov/
+
+
 
 # OS
 .DS_Store
