@@ -1,3 +1,14 @@
-# Virtual environment
-venv/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
 .venv/
+venv/
+ENV/
+
+# Pytest & Benchmarks
+.pytest_cache/
+.benchmarks/
+
+# OS
+.DS_Store
