@@ -1,6 +1,6 @@
 # Software Testing Project - Triangle Classification
 
-Questo progetto utilizza **Pynguin** per la generazione automatica di test unitari e **Pytest** per la loro esecuzione.
+Questo progetto utilizza **Pynguin** per la generazione automatica di test unitari e **Pytest** per la loro esecuzione e l'analisi della copertura del codice.
 
 ## 🛠️ Setup del Progetto
 
@@ -35,10 +35,16 @@ Per generare i test automaticamente, segui questi passaggi:
    pynguin --project-path ./benchmark --module-name triangle --output-path ./tests
    ```
 
-## 🚀 Esecuzione dei Test
+## 🚀 Esecuzione dei Test e Coverage
 
-I test vengono eseguiti tramite **pytest**. Grazie al file `pytest.ini` presente nella root, la cartella `benchmark/` viene aggiunta automaticamente al path di Python.
+Grazie alla configurazione presente in `pytest.ini` e `.coveragerc`, l'esecuzione dei test e la generazione del report di coverage sono completamente automatiche.
 
+Per eseguire i test e generare i report:
 ```bash
 pytest ./tests
 ```
+
+### Output dei risultati
+Dopo l'esecuzione, troverai tutti i risultati nella cartella `results/pynguin/`:
+*   **Report HTML**: `results/pynguin/htmlcov/index.html` (apribile nel browser).
+*   **Dati Coverage**: `results/pynguin/.coverage`.
