@@ -8,7 +8,12 @@ Progetto per l'automazione del testing Python utilizzando **Pynguin** per la gen
 
 Segui questi passaggi per preparare l'ambiente di lavoro.
 
-### 1. Attivazione dell'Ambiente Virtuale
+### 1. Creazione e Attivazione dell'Ambiente Virtuale
+Crea l'ambiente virtuale per isolare le dipendenze del progetto:
+```bash
+python3 -m venv .venv
+```
+
 Attiva l'ambiente virtuale per isolare le dipendenze del progetto:
 ```bash
 source .venv/bin/activate

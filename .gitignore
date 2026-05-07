@@ -14,9 +14,8 @@ ENV/
 results/**/*
 !results/**/
 !results/**/.gitkeep
-tests/**/*
-!tests/**/
-!tests/**/.gitkeep
+tests/*
+!tests/.gitkeep
 pynguin-report/**/*
 !pynguin-report/**/
 !pynguin-report/**/.gitkeep
