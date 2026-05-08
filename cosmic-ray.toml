@@ -1,0 +1,13 @@
+[cosmic-ray]
+# Subject Under Test
+module-path = "benchmark/triangle.py"
+
+# Timeout per evitare loop infiniti causati da mutanti "cattivi"
+timeout = 10.0
+
+# Il comando per lanciare la tua suite di test
+test-command = "pytest tests/"
+
+# Aggiungi questa sezione per dire a Cosmic Ray di eseguire i test localmente
+[cosmic-ray.distributor]
+name = "local"

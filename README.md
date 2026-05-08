@@ -90,7 +90,49 @@ Mostra esattamente quale modifica è stata apportata a un mutante specifico tram
 mutmut show <id>
 ```
 
----
+### 10. Cosmic-ray configuration
+Per inizializzare cosmic ray bisogna creare un file nominato **cosmic-ray.toml** e dargli le info generali di configurazione
+```bash
+[cosmic-ray]
+# Subject Under Test
+module-path = "benchmark/triangle.py"
+# Distributor selection: use a local (single-process) distributor by default
+distributor = "local"
+# Timeout per evitare loop infiniti causati da mutanti "cattivi"
+timeout = 10.0
+# Il comando per lanciare la tua suite di test
+test-command = "pytest tests/"
+```
+
+### 11. Cosmic-ray init
+Avvio di cosmic ray che prima deve "scoprire" quali mutazioni può applicare --> genera automaticamente un file *session.sqlite* (che servirà per tracciare quali mutanti sono stati eseguiti, uccisi o sopravvissuti) col comando
+```bash
+cosmic-ray init cosmic-ray.toml session.sqlite
+```
+
+### 12. Cosmic-ray run
+Avvio di cosmic ray che prima deve "scoprire" quali mutazioni può applicare --> genera automaticamente un file *session.sqlite* (che servirà per tracciare quali mutanti sono stati eseguiti, uccisi o sopravvissuti) col comando
+```bash
+cosmic-ray init cosmic-ray.toml session.sqlite
+```
+
+Cosmic Ray poi, esegue effettivamente le mutazioni e lancia i test con
+```bash
+cosmic-ray exec cosmic-ray.toml session.sqlite
+```
+
+### 13. Cosmic-ray results
+Per estrarre i risultati in un file **html**
+```bash
+cr-html session.sqlite > results/cosmic_ray/report.html
+```
+
+### 14. Automazione dei test
+Creazione e uso di **benchmark_runner.py** per automatizzare i test appena creati e creazione di una dashboard online per la visualizzazione di questi ultimi; avvio con
+```bash
+python benchmark_runner.py
+```
+
 
 ## 📁 Struttura della Repository
 Tutti i file generati durante l'esecuzione sono ignorati da Git per mantenere il progetto pulito:
