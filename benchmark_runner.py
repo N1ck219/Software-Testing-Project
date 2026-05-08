@@ -81,16 +81,15 @@ def run_mutmut(run_id):
     """Esegue Mutmut, estrae il punteggio e genera il report HTML tramite bash."""
     print("   👾 Esecuzione Mutmut...")
     start_time = time.time()
-    subprocess.run(["mutmut", "run"], capture_output=True, text=True)
+    run_result = subprocess.run(["mutmut", "run"], capture_output=True, text=True)
     execution_time = time.time() - start_time
     
-    # Estrae i risultati testuali
-    result = subprocess.run(["mutmut", "results"], capture_output=True, text=True)
+    # Estrae i risultati testuali dall'output di run
     killed, survived = 0, 0
-    match_k = re.search(r"Killed:\s*(\d+)", result.stdout)
-    match_s = re.search(r"Survived:\s*(\d+)", result.stdout)
-    if match_k: killed = int(match_k.group(1))
-    if match_s: survived = int(match_s.group(1))
+    matches_k = re.findall(r"🎉\s*(\d+)", run_result.stdout)
+    matches_s = re.findall(r"🙁\s*(\d+)", run_result.stdout)
+    if matches_k: killed = int(matches_k[-1])
+    if matches_s: survived = int(matches_s[-1])
     
     total = killed + survived
     score = (killed / total * 100) if total > 0 else 0.0
@@ -99,6 +98,8 @@ def run_mutmut(run_id):
     bash_cmd = f"mutmut html && rm -rf results/mutmut/run_{run_id}_htmlcov && mv html results/mutmut/run_{run_id}_htmlcov"
     subprocess.run(bash_cmd, shell=True, executable="/bin/bash")
     
+    print(f"   👾 Mutmut: Uccisi {killed} mutanti, Sopravvissuti {survived} mutanti, Tempo {execution_time:.2f}s")
+
     return {
         "tool": "mutmut",
         "time": round(execution_time, 2),

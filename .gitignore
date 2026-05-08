@@ -22,7 +22,7 @@ pynguin-report/**/*
 .mutmut-cache
 .coverage
 htmlcov/
-
+session.sqlite
 
 
 # OS
