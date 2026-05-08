@@ -70,7 +70,8 @@ def run_pynguin():
         "--project-path", "./benchmark",
         "--module-name", "triangle",
         "--output-path", "./tests",
-        "--assertion-generation", "MUTATION_ANALYSIS"
+        "--assertion-generation", "MUTATION_ANALYSIS",
+        "--maximum-search-time", "10"
     ]
     
     start_time = time.time()
