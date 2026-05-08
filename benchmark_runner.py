@@ -80,6 +80,21 @@ def run_pynguin():
 def run_mutmut(run_id):
     """Esegue Mutmut, estrae il punteggio e genera il report HTML tramite bash."""
     print("   👾 Esecuzione Mutmut...")
+
+    # --- INIZIO CONFIGURAZIONE DINAMICA ---
+    # Controlla se siamo su GitHub (CI) o sul tuo PC locale
+    is_ci = os.environ.get("CI")
+    runner_cmd = "pytest" if is_ci else ".venv/bin/pytest"
+    
+    # Scrive (o sovrascrive) il file setup.cfg con il runner corretto
+    setup_cfg_content = f"""[mutmut]
+    paths_to_mutate=benchmark/
+    runner={runner_cmd}
+    """
+    with open("setup.cfg", "w") as f:
+        f.write(setup_cfg_content)
+    # --- FINE CONFIGURAZIONE DINAMICA ---
+    
     start_time = time.time()
     run_result = subprocess.run(["mutmut", "run"], capture_output=True, text=True)
     execution_time = time.time() - start_time
