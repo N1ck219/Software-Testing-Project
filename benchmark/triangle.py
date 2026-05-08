@@ -1,7 +1,7 @@
 def classify_triangle(a, b, c):
     if a <= 0 or b <= 0 or c <= 0:
         return "Invalid"
-    if a + b <= c or a + c <= b or b + c == a:
+    if a + b <= c or a + c <= b or b + c <= a:
         return "Not a Triangle"
     if a == b == c:
         return "Equilateral"

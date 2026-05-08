@@ -71,7 +71,6 @@ def run_pynguin():
         "--module-name", "triangle",
         "--output-path", "./tests",
         "--assertion-generation", "MUTATION_ANALYSIS",
-        "--maximum-search-time", "10"
     ]
     
     start_time = time.time()
@@ -121,22 +120,33 @@ def run_cosmic_ray(run_id):
     
     # Estrae risultati
     result = subprocess.run(["cr-report", "session.sqlite"], capture_output=True, text=True)
-    total_jobs, survival_rate = 0, 0.0
-    match_t = re.search(r"Total jobs:\s*(\d+)", result.stdout)
-    match_sr = re.search(r"Survival rate:\s*([\d\.]+)%", result.stdout)
-    if match_t: total_jobs = int(match_t.group(1))
-    if match_sr: survival_rate = float(match_sr.group(1))
+    total_jobs, completed, survived, survival_rate = 0, 0, 0, 0.0
     
-    score = 100.0 - survival_rate if total_jobs > 0 else 0.0
+    match_t = re.search(r"total jobs:\s*(\d+)", result.stdout, re.IGNORECASE)
+    match_c = re.search(r"complete:\s*(\d+)", result.stdout, re.IGNORECASE)
+    match_s = re.search(r"surviving mutants:\s*(\d+)\s*\(([\d\.]+)%\)", result.stdout, re.IGNORECASE)
+    
+    if match_t: total_jobs = int(match_t.group(1))
+    if match_c: completed = int(match_c.group(1))
+    if match_s: 
+        survived = int(match_s.group(1))
+        survival_rate = float(match_s.group(2))
+    
+    killed = completed - survived
+    score = 100.0 - survival_rate if completed > 0 else 0.0
 
     # Genera report HTML usando il comando Bash richiesto
     bash_cmd = f"cr-html session.sqlite > results/cosmic_ray/run_{run_id}_report.html"
     subprocess.run(bash_cmd, shell=True, executable="/bin/bash")
     
+    print(f"   🚀 Cosmic Ray: Uccisi {killed} mutanti, Sopravvissuti {survived} mutanti, Tempo {execution_time:.2f}s")
+    
     return {
         "tool": "cosmic_ray",
         "time": round(execution_time, 2),
         "total_jobs": total_jobs,
+        "completed": completed,
+        "survived": survived,
         "survival_rate": survival_rate,
         "mutation_score": round(score, 2)
     }
@@ -215,36 +225,50 @@ def main():
     Path("results").mkdir(exist_ok=True)
     setup_directories()
     
+    # Crea un backup di sicurezza del codice originale
+    if Path("benchmark_backup").exists():
+        shutil.rmtree("benchmark_backup")
+    shutil.copytree("benchmark", "benchmark_backup")
+    
     all_results = []
     
-    # 2. Esecuzione Benchmark
-    for i in range(NUM_RUNS):
-        run_id = i + 1
-        print(f"\n--- 🔄 Esecuzione Run {run_id}/{NUM_RUNS} ---")
-        
-        clean_run_cache()
-        pynguin_time = run_pynguin()
-        
-        mutmut_data = run_mutmut(run_id)
-        cr_data = run_cosmic_ray(run_id)
-        
-        run_record = {
-            "run_id": run_id,
-            "pynguin_time_sec": round(pynguin_time, 2),
-            "mutmut": mutmut_data,
-            "cosmic_ray": cr_data
-        }
-        all_results.append(run_record)
-        
-        # Salvataggio incrementale JSON
-        with open(RESULTS_FILE, "w") as f:
-            json.dump(all_results, f, indent=4)
+    try:
+        # 2. Esecuzione Benchmark
+        for i in range(NUM_RUNS):
+            run_id = i + 1
+            print(f"\n--- 🔄 Esecuzione Run {run_id}/{NUM_RUNS} ---")
             
-        print(f"   ✅ Run {run_id} completata.")
-        
-    # 3. Report Finale
-    generate_comparison_report(all_results)
-    print(f"\n🎉 Benchmark completato! Controlla la cartella 'results/' per i report.")
+            clean_run_cache()
+            pynguin_time = run_pynguin()
+            
+            mutmut_data = run_mutmut(run_id)
+            cr_data = run_cosmic_ray(run_id)
+            
+            run_record = {
+                "run_id": run_id,
+                "pynguin_time_sec": round(pynguin_time, 2),
+                "mutmut": mutmut_data,
+                "cosmic_ray": cr_data
+            }
+            all_results.append(run_record)
+            
+            # Salvataggio incrementale JSON
+            with open(RESULTS_FILE, "w") as f:
+                json.dump(all_results, f, indent=4)
+                
+            print(f"   ✅ Run {run_id} completata.")
+            
+        # 3. Report Finale
+        generate_comparison_report(all_results)
+        print(f"\n🎉 Benchmark completato! Controlla la cartella 'results/' per i report.")
+    finally:
+        # Ripristina sempre il backup originale anche in caso di crash (es. Ctrl+C)
+        print("\n🔄 Ripristino del codice sorgente originale...")
+        if Path("benchmark").exists():
+            shutil.rmtree("benchmark")
+        shutil.copytree("benchmark_backup", "benchmark")
+        shutil.rmtree("benchmark_backup")
+        print("✅ Codice ripristinato con successo.")
 
 if __name__ == "__main__":
     main()
