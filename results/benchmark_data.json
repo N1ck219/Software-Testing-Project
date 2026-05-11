@@ -1,0 +1,812 @@
+[
+    {
+        "run_id": "DYNAMOSA_1",
+        "pynguin_time_sec": 16.21,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 8.06,
+            "killed": 19,
+            "survived": 6,
+            "total": 25,
+            "mutation_score": 76.0,
+            "avg_cpu": 2.0,
+            "peak_cpu": 20.0,
+            "peak_ram": 112.86
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 38.44,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 25,
+            "survival_rate": 21.01,
+            "mutation_score": 78.99,
+            "avg_cpu": 2.54,
+            "peak_cpu": 69.9,
+            "peak_ram": 111.58
+        }
+    },
+    {
+        "run_id": "DYNAMOSA_2",
+        "pynguin_time_sec": 2.22,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.44,
+            "killed": 20,
+            "survived": 5,
+            "total": 25,
+            "mutation_score": 80.0,
+            "avg_cpu": 1.79,
+            "peak_cpu": 20.0,
+            "peak_ram": 113.24
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 38.69,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 19,
+            "survival_rate": 15.97,
+            "mutation_score": 84.03,
+            "avg_cpu": 2.51,
+            "peak_cpu": 69.9,
+            "peak_ram": 111.2
+        }
+    },
+    {
+        "run_id": "DYNAMOSA_3",
+        "pynguin_time_sec": 9.03,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 8.54,
+            "killed": 19,
+            "survived": 6,
+            "total": 25,
+            "mutation_score": 76.0,
+            "avg_cpu": 2.0,
+            "peak_cpu": 20.0,
+            "peak_ram": 113.49
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 37.1,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 21,
+            "survival_rate": 17.65,
+            "mutation_score": 82.35,
+            "avg_cpu": 2.9,
+            "peak_cpu": 75.8,
+            "peak_ram": 116.82
+        }
+    },
+    {
+        "run_id": "DYNAMOSA_4",
+        "pynguin_time_sec": 2.88,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.36,
+            "killed": 21,
+            "survived": 4,
+            "total": 25,
+            "mutation_score": 84.0,
+            "avg_cpu": 1.79,
+            "peak_cpu": 20.0,
+            "peak_ram": 124.48
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 38.83,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 21,
+            "survival_rate": 17.65,
+            "mutation_score": 82.35,
+            "avg_cpu": 2.54,
+            "peak_cpu": 69.9,
+            "peak_ram": 106.56
+        }
+    },
+    {
+        "run_id": "DYNAMOSA_5",
+        "pynguin_time_sec": 16.18,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 8.84,
+            "killed": 20,
+            "survived": 5,
+            "total": 25,
+            "mutation_score": 80.0,
+            "avg_cpu": 1.78,
+            "peak_cpu": 20.0,
+            "peak_ram": 113.67
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 38.05,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 23,
+            "survival_rate": 19.33,
+            "mutation_score": 80.67,
+            "avg_cpu": 2.52,
+            "peak_cpu": 67.8,
+            "peak_ram": 116.09
+        }
+    },
+    {
+        "run_id": "DYNAMOSA_6",
+        "pynguin_time_sec": 1.86,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 8.59,
+            "killed": 20,
+            "survived": 5,
+            "total": 25,
+            "mutation_score": 80.0,
+            "avg_cpu": 1.89,
+            "peak_cpu": 22.0,
+            "peak_ram": 113.62
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 36.5,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 19,
+            "survival_rate": 15.97,
+            "mutation_score": 84.03,
+            "avg_cpu": 2.87,
+            "peak_cpu": 87.8,
+            "peak_ram": 105.84
+        }
+    },
+    {
+        "run_id": "DYNAMOSA_7",
+        "pynguin_time_sec": 10.35,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.26,
+            "killed": 20,
+            "survived": 5,
+            "total": 25,
+            "mutation_score": 80.0,
+            "avg_cpu": 1.79,
+            "peak_cpu": 20.0,
+            "peak_ram": 113.23
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 38.12,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 19,
+            "survival_rate": 15.97,
+            "mutation_score": 84.03,
+            "avg_cpu": 2.73,
+            "peak_cpu": 69.9,
+            "peak_ram": 118.29
+        }
+    },
+    {
+        "run_id": "DYNAMOSA_8",
+        "pynguin_time_sec": 8.5,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.04,
+            "killed": 21,
+            "survived": 4,
+            "total": 25,
+            "mutation_score": 84.0,
+            "avg_cpu": 2.0,
+            "peak_cpu": 18.0,
+            "peak_ram": 123.86
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 38.07,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 19,
+            "survival_rate": 15.97,
+            "mutation_score": 84.03,
+            "avg_cpu": 2.5,
+            "peak_cpu": 65.9,
+            "peak_ram": 105.65
+        }
+    },
+    {
+        "run_id": "DYNAMOSA_9",
+        "pynguin_time_sec": 4.6,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 8.69,
+            "killed": 19,
+            "survived": 6,
+            "total": 25,
+            "mutation_score": 76.0,
+            "avg_cpu": 1.88,
+            "peak_cpu": 17.9,
+            "peak_ram": 113.23
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 42.9,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 20,
+            "survival_rate": 16.81,
+            "mutation_score": 83.19,
+            "avg_cpu": 2.37,
+            "peak_cpu": 67.8,
+            "peak_ram": 105.95
+        }
+    },
+    {
+        "run_id": "DYNAMOSA_10",
+        "pynguin_time_sec": 3.22,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.89,
+            "killed": 21,
+            "survived": 4,
+            "total": 25,
+            "mutation_score": 84.0,
+            "avg_cpu": 1.9,
+            "peak_cpu": 20.0,
+            "peak_ram": 113.36
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 40.84,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 17,
+            "survival_rate": 14.29,
+            "mutation_score": 85.71,
+            "avg_cpu": 2.51,
+            "peak_cpu": 71.9,
+            "peak_ram": 110.53
+        }
+    },
+    {
+        "run_id": "MOSA_1",
+        "pynguin_time_sec": 16.31,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.58,
+            "killed": 17,
+            "survived": 8,
+            "total": 25,
+            "mutation_score": 68.0,
+            "avg_cpu": 1.79,
+            "peak_cpu": 19.9,
+            "peak_ram": 113.36
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 53.72,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 28,
+            "survival_rate": 23.53,
+            "mutation_score": 76.47,
+            "avg_cpu": 2.4,
+            "peak_cpu": 71.8,
+            "peak_ram": 105.64
+        }
+    },
+    {
+        "run_id": "MOSA_2",
+        "pynguin_time_sec": 4.04,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 14.27,
+            "killed": 21,
+            "survived": 4,
+            "total": 25,
+            "mutation_score": 84.0,
+            "avg_cpu": 1.45,
+            "peak_cpu": 20.0,
+            "peak_ram": 113.32
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 52.75,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 18,
+            "survival_rate": 15.13,
+            "mutation_score": 84.87,
+            "avg_cpu": 4.4,
+            "peak_cpu": 101.5,
+            "peak_ram": 114.07
+        }
+    },
+    {
+        "run_id": "MOSA_3",
+        "pynguin_time_sec": 1.77,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.5,
+            "killed": 21,
+            "survived": 4,
+            "total": 25,
+            "mutation_score": 84.0,
+            "avg_cpu": 1.89,
+            "peak_cpu": 20.0,
+            "peak_ram": 113.73
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 39.74,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 18,
+            "survival_rate": 15.13,
+            "mutation_score": 84.87,
+            "avg_cpu": 2.77,
+            "peak_cpu": 79.8,
+            "peak_ram": 105.84
+        }
+    },
+    {
+        "run_id": "MOSA_4",
+        "pynguin_time_sec": 4.02,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.53,
+            "killed": 21,
+            "survived": 4,
+            "total": 25,
+            "mutation_score": 84.0,
+            "avg_cpu": 1.89,
+            "peak_cpu": 17.9,
+            "peak_ram": 113.26
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 39.75,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 20,
+            "survival_rate": 16.81,
+            "mutation_score": 83.19,
+            "avg_cpu": 2.52,
+            "peak_cpu": 73.8,
+            "peak_ram": 113.32
+        }
+    },
+    {
+        "run_id": "MOSA_5",
+        "pynguin_time_sec": 7.39,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.24,
+            "killed": 21,
+            "survived": 4,
+            "total": 25,
+            "mutation_score": 84.0,
+            "avg_cpu": 1.68,
+            "peak_cpu": 19.9,
+            "peak_ram": 120.54
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 38.64,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 19,
+            "survival_rate": 15.97,
+            "mutation_score": 84.03,
+            "avg_cpu": 2.74,
+            "peak_cpu": 77.8,
+            "peak_ram": 118.32
+        }
+    },
+    {
+        "run_id": "MOSA_6",
+        "pynguin_time_sec": 3.83,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.09,
+            "killed": 21,
+            "survived": 4,
+            "total": 25,
+            "mutation_score": 84.0,
+            "avg_cpu": 1.68,
+            "peak_cpu": 18.0,
+            "peak_ram": 113.31
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 37.82,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 17,
+            "survival_rate": 14.29,
+            "mutation_score": 85.71,
+            "avg_cpu": 2.52,
+            "peak_cpu": 63.9,
+            "peak_ram": 112.04
+        }
+    },
+    {
+        "run_id": "MOSA_7",
+        "pynguin_time_sec": 2.28,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 10.04,
+            "killed": 21,
+            "survived": 4,
+            "total": 25,
+            "mutation_score": 84.0,
+            "avg_cpu": 1.8,
+            "peak_cpu": 19.9,
+            "peak_ram": 113.74
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 37.79,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 19,
+            "survival_rate": 15.97,
+            "mutation_score": 84.03,
+            "avg_cpu": 2.63,
+            "peak_cpu": 67.8,
+            "peak_ram": 105.41
+        }
+    },
+    {
+        "run_id": "MOSA_8",
+        "pynguin_time_sec": 3.64,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.81,
+            "killed": 21,
+            "survived": 4,
+            "total": 25,
+            "mutation_score": 84.0,
+            "avg_cpu": 1.6,
+            "peak_cpu": 18.0,
+            "peak_ram": 113.11
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 39.12,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 18,
+            "survival_rate": 15.13,
+            "mutation_score": 84.87,
+            "avg_cpu": 2.78,
+            "peak_cpu": 67.9,
+            "peak_ram": 118.7
+        }
+    },
+    {
+        "run_id": "MOSA_9",
+        "pynguin_time_sec": 16.28,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.34,
+            "killed": 20,
+            "survived": 5,
+            "total": 25,
+            "mutation_score": 80.0,
+            "avg_cpu": 1.79,
+            "peak_cpu": 20.0,
+            "peak_ram": 113.62
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 36.71,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 24,
+            "survival_rate": 20.17,
+            "mutation_score": 79.83,
+            "avg_cpu": 2.62,
+            "peak_cpu": 69.8,
+            "peak_ram": 114.66
+        }
+    },
+    {
+        "run_id": "MOSA_10",
+        "pynguin_time_sec": 4.94,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.87,
+            "killed": 18,
+            "survived": 7,
+            "total": 25,
+            "mutation_score": 72.0,
+            "avg_cpu": 1.6,
+            "peak_cpu": 18.0,
+            "peak_ram": 113.2
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 39.78,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 24,
+            "survival_rate": 20.17,
+            "mutation_score": 79.83,
+            "avg_cpu": 2.55,
+            "peak_cpu": 73.8,
+            "peak_ram": 118.21
+        }
+    },
+    {
+        "run_id": "MIO_1",
+        "pynguin_time_sec": 11.04,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.45,
+            "killed": 21,
+            "survived": 4,
+            "total": 25,
+            "mutation_score": 84.0,
+            "avg_cpu": 1.79,
+            "peak_cpu": 20.0,
+            "peak_ram": 127.36
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 35.41,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 18,
+            "survival_rate": 15.13,
+            "mutation_score": 84.87,
+            "avg_cpu": 2.7,
+            "peak_cpu": 71.8,
+            "peak_ram": 111.06
+        }
+    },
+    {
+        "run_id": "MIO_2",
+        "pynguin_time_sec": 16.21,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 10.04,
+            "killed": 19,
+            "survived": 6,
+            "total": 25,
+            "mutation_score": 76.0,
+            "avg_cpu": 1.9,
+            "peak_cpu": 20.0,
+            "peak_ram": 126.61
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 36.5,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 22,
+            "survival_rate": 18.49,
+            "mutation_score": 81.51,
+            "avg_cpu": 2.68,
+            "peak_cpu": 63.8,
+            "peak_ram": 116.8
+        }
+    },
+    {
+        "run_id": "MIO_3",
+        "pynguin_time_sec": 5.56,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.88,
+            "killed": 19,
+            "survived": 6,
+            "total": 25,
+            "mutation_score": 76.0,
+            "avg_cpu": 1.79,
+            "peak_cpu": 21.9,
+            "peak_ram": 113.23
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 38.79,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 21,
+            "survival_rate": 17.65,
+            "mutation_score": 82.35,
+            "avg_cpu": 2.49,
+            "peak_cpu": 65.9,
+            "peak_ram": 105.83
+        }
+    },
+    {
+        "run_id": "MIO_4",
+        "pynguin_time_sec": 16.24,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.67,
+            "killed": 20,
+            "survived": 5,
+            "total": 25,
+            "mutation_score": 80.0,
+            "avg_cpu": 1.5,
+            "peak_cpu": 18.0,
+            "peak_ram": 113.61
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 37.23,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 24,
+            "survival_rate": 20.17,
+            "mutation_score": 79.83,
+            "avg_cpu": 2.61,
+            "peak_cpu": 69.8,
+            "peak_ram": 119.21
+        }
+    },
+    {
+        "run_id": "MIO_5",
+        "pynguin_time_sec": 16.17,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 10.2,
+            "killed": 20,
+            "survived": 5,
+            "total": 25,
+            "mutation_score": 80.0,
+            "avg_cpu": 1.52,
+            "peak_cpu": 17.9,
+            "peak_ram": 113.73
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 39.46,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 21,
+            "survival_rate": 17.65,
+            "mutation_score": 82.35,
+            "avg_cpu": 2.53,
+            "peak_cpu": 71.9,
+            "peak_ram": 105.43
+        }
+    },
+    {
+        "run_id": "MIO_6",
+        "pynguin_time_sec": 3.09,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 10.65,
+            "killed": 17,
+            "survived": 8,
+            "total": 25,
+            "mutation_score": 68.0,
+            "avg_cpu": 1.55,
+            "peak_cpu": 16.0,
+            "peak_ram": 113.35
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 39.21,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 24,
+            "survival_rate": 20.17,
+            "mutation_score": 79.83,
+            "avg_cpu": 2.63,
+            "peak_cpu": 73.8,
+            "peak_ram": 118.61
+        }
+    },
+    {
+        "run_id": "MIO_7",
+        "pynguin_time_sec": 7.74,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.72,
+            "killed": 21,
+            "survived": 4,
+            "total": 25,
+            "mutation_score": 84.0,
+            "avg_cpu": 1.6,
+            "peak_cpu": 18.0,
+            "peak_ram": 113.62
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 38.51,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 18,
+            "survival_rate": 15.13,
+            "mutation_score": 84.87,
+            "avg_cpu": 2.96,
+            "peak_cpu": 91.8,
+            "peak_ram": 117.59
+        }
+    },
+    {
+        "run_id": "MIO_8",
+        "pynguin_time_sec": 5.3,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 10.09,
+            "killed": 18,
+            "survived": 7,
+            "total": 25,
+            "mutation_score": 72.0,
+            "avg_cpu": 1.61,
+            "peak_cpu": 21.9,
+            "peak_ram": 113.11
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 38.94,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 21,
+            "survival_rate": 17.65,
+            "mutation_score": 82.35,
+            "avg_cpu": 2.54,
+            "peak_cpu": 71.8,
+            "peak_ram": 119.71
+        }
+    },
+    {
+        "run_id": "MIO_9",
+        "pynguin_time_sec": 5.14,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 10.47,
+            "killed": 17,
+            "survived": 8,
+            "total": 25,
+            "mutation_score": 68.0,
+            "avg_cpu": 1.52,
+            "peak_cpu": 19.9,
+            "peak_ram": 113.86
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 37.6,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 22,
+            "survival_rate": 18.49,
+            "mutation_score": 81.51,
+            "avg_cpu": 2.66,
+            "peak_cpu": 71.8,
+            "peak_ram": 117.08
+        }
+    },
+    {
+        "run_id": "MIO_10",
+        "pynguin_time_sec": 16.18,
+        "mutmut": {
+            "tool": "mutmut",
+            "time": 9.63,
+            "killed": 16,
+            "survived": 9,
+            "total": 25,
+            "mutation_score": 64.0,
+            "avg_cpu": 1.6,
+            "peak_cpu": 18.0,
+            "peak_ram": 113.48
+        },
+        "cosmic_ray": {
+            "tool": "cosmic_ray",
+            "time": 36.15,
+            "total_jobs": 119,
+            "completed": 119,
+            "survived": 25,
+            "survival_rate": 21.01,
+            "mutation_score": 78.99,
+            "avg_cpu": 2.71,
+            "peak_cpu": 63.9,
+            "peak_ram": 114.33
+        }
+    }
+]

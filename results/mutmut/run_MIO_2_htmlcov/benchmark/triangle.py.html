@@ -1,0 +1,60 @@
+<html><body><h1>benchmark/triangle.py</h1>Killed 19 out of 25 mutants<h2>Survived</h2>Survived mutation testing. These mutants show holes in your test suite.<h3>Mutant 1</h3><pre>--- benchmark/triangle.py
++++ benchmark/triangle.py
+@@ -1,5 +1,5 @@
+ def classify_triangle(a, b, c):
+-    if a <= 0 or b <= 0 or c <= 0:
++    if a < 0 or b <= 0 or c <= 0:
+         return "Invalid"
+     if a + b <= c or a + c <= b or b + c <= a:
+         return "Not a Triangle"
+</pre><h3>Mutant 5</h3><pre>--- benchmark/triangle.py
++++ benchmark/triangle.py
+@@ -1,5 +1,5 @@
+ def classify_triangle(a, b, c):
+-    if a <= 0 or b <= 0 or c <= 0:
++    if a <= 0 or b <= 0 or c < 0:
+         return "Invalid"
+     if a + b <= c or a + c <= b or b + c <= a:
+         return "Not a Triangle"
+</pre><h3>Mutant 10</h3><pre>--- benchmark/triangle.py
++++ benchmark/triangle.py
+@@ -1,7 +1,7 @@
+ def classify_triangle(a, b, c):
+     if a <= 0 or b <= 0 or c <= 0:
+         return "Invalid"
+-    if a + b <= c or a + c <= b or b + c <= a:
++    if a + b < c or a + c <= b or b + c <= a:
+         return "Not a Triangle"
+     if a == b == c:
+         return "Equilateral"
+</pre><h3>Mutant 12</h3><pre>--- benchmark/triangle.py
++++ benchmark/triangle.py
+@@ -1,7 +1,7 @@
+ def classify_triangle(a, b, c):
+     if a <= 0 or b <= 0 or c <= 0:
+         return "Invalid"
+-    if a + b <= c or a + c <= b or b + c <= a:
++    if a + b <= c or a + c < b or b + c <= a:
+         return "Not a Triangle"
+     if a == b == c:
+         return "Equilateral"
+</pre><h3>Mutant 14</h3><pre>--- benchmark/triangle.py
++++ benchmark/triangle.py
+@@ -1,7 +1,7 @@
+ def classify_triangle(a, b, c):
+     if a <= 0 or b <= 0 or c <= 0:
+         return "Invalid"
+-    if a + b <= c or a + c <= b or b + c <= a:
++    if a + b <= c or a + c <= b or b + c < a:
+         return "Not a Triangle"
+     if a == b == c:
+         return "Equilateral"
+</pre><h3>Mutant 25</h3><pre>--- benchmark/triangle.py
++++ benchmark/triangle.py
+@@ -8,4 +8,4 @@
+     elif a == b or b == c or a == c:
+         return "Isosceles"
+     else:
+-        return "Scalene"
++        return "XXScaleneXX"
+</pre></body></html>

@@ -1,0 +1,137 @@
+
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+        <meta charset="UTF-8">
+        <title>Benchmark Mutation Testing Report</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <style>
+            body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 40px; color: #1c1e21; }
+            .container { max-width: 1200px; margin: auto; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+            .header { text-align: center; margin-bottom: 50px; border-bottom: 2px solid #f0f2f5; padding-bottom: 20px; }
+            .gauge-section { display: flex; justify-content: space-around; margin-bottom: 60px; }
+            .gauge-card { text-align: center; width: 45%; padding: 25px; border-radius: 12px; background: #fff; border: 1px solid #e0e0e0; }
+            .gauge { width: 180px; height: 180px; border-radius: 50%; margin: 20px auto; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; transition: transform 0.3s; }
+            .gauge:hover { transform: scale(1.05); }
+            .chart-container { margin-bottom: 60px; padding: 30px; background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; }
+            .status-label { display: inline-block; padding: 8px 20px; border-radius: 20px; font-size: 16px; margin-top: 15px; font-weight: bold; }
+            h3 { color: #2c3e50; border-left: 5px solid #3498db; padding-left: 15px; margin-bottom: 25px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>📊 Risultati Benchmark: Mutmut vs Cosmic Ray</h1>
+                <p>Confronto Strategie di Generazione (Pynguin)</p>
+            </div>
+
+            <div class="gauge-section">
+                <div class="gauge-card">
+                    <h2>👾 Mutmut (Media Totale)</h2>
+                    <div class="gauge" style="background: conic-gradient(#f39c12 78.66666666666667%, #eee 0%); shadow: inset 0 0 10px rgba(0,0,0,0.1);">
+                        <div style="background: white; width: 140px; height: 140px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2c3e50;">78.7%</div>
+                    </div>
+                    <div class="status-label" style="background: #f39c1215; color: #f39c12; border: 1px solid #f39c12;">⚠️ Suite Discreta</div>
+                    <p>Tempo medio: <strong>9.66s</strong></p>
+                </div>
+
+                <div class="gauge-card">
+                    <h2>🚀 Cosmic Ray (Media Totale)</h2>
+                    <div class="gauge" style="background: conic-gradient(#2ecc71 82.518%, #eee 0%);">
+                        <div style="background: white; width: 140px; height: 140px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2c3e50;">82.5%</div>
+                    </div>
+                    <div class="status-label" style="background: #2ecc7115; color: #2ecc71; border: 1px solid #2ecc71;">✅ Suite Robusta</div>
+                    <p>Tempo medio: <strong>39.37s</strong></p>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3>📊 Confronto Mutation Score per Run (Killed %)</h3>
+                <canvas id="scoreChart"></canvas>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; gap: 20px;">
+                <div class="chart-container" style="flex: 1;">
+                    <h3>💻 Utilizzo CPU Medio (%)</h3>
+                    <canvas id="cpuChart"></canvas>
+                    <p style="text-align: center; margin-top: 15px;">Media Mutmut: <strong>1.7%</strong> | Media Cosmic Ray: <strong>2.7%</strong></p>
+                </div>
+                <div class="chart-container" style="flex: 1;">
+                    <h3>💾 Picco RAM (MB)</h3>
+                    <canvas id="ramChart"></canvas>
+                    <p style="text-align: center; margin-top: 15px;">Media Mutmut: <strong>115.3 MB</strong> | Media Cosmic Ray: <strong>112.7 MB</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['DYNAMOSA_1', 'DYNAMOSA_2', 'DYNAMOSA_3', 'DYNAMOSA_4', 'DYNAMOSA_5', 'DYNAMOSA_6', 'DYNAMOSA_7', 'DYNAMOSA_8', 'DYNAMOSA_9', 'DYNAMOSA_10', 'MOSA_1', 'MOSA_2', 'MOSA_3', 'MOSA_4', 'MOSA_5', 'MOSA_6', 'MOSA_7', 'MOSA_8', 'MOSA_9', 'MOSA_10', 'MIO_1', 'MIO_2', 'MIO_3', 'MIO_4', 'MIO_5', 'MIO_6', 'MIO_7', 'MIO_8', 'MIO_9', 'MIO_10'],
+                    datasets: [
+                        {
+                            label: 'Mutmut Killed %',
+                            data: [76.0, 80.0, 76.0, 84.0, 80.0, 80.0, 80.0, 84.0, 76.0, 84.0, 68.0, 84.0, 84.0, 84.0, 84.0, 84.0, 84.0, 84.0, 80.0, 72.0, 84.0, 76.0, 76.0, 80.0, 80.0, 68.0, 84.0, 72.0, 68.0, 64.0],
+                            backgroundColor: '#3498db',
+                            borderColor: '#2980b9',
+                            borderWidth: 1,
+                            borderRadius: 5
+                        },
+                        {
+                            label: 'Cosmic Ray Killed %',
+                            data: [78.99, 84.03, 82.35, 82.35, 80.67, 84.03, 84.03, 84.03, 83.19, 85.71, 76.47, 84.87, 84.87, 83.19, 84.03, 85.71, 84.03, 84.87, 79.83, 79.83, 84.87, 81.51, 82.35, 79.83, 82.35, 79.83, 84.87, 82.35, 81.51, 78.99],
+                            backgroundColor: '#e74c3c',
+                            borderColor: '#c0392b',
+                            borderWidth: 1,
+                            borderRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: 'Percentuale Mutanti Uccisi (%)', font: { weight: 'bold' } }
+                        },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { padding: 20, font: { size: 14 } } },
+                        tooltip: { padding: 15, cornerRadius: 10 }
+                    }
+                }
+            });
+
+            // CPU Chart
+            new Chart(document.getElementById('cpuChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['DYNAMOSA_1', 'DYNAMOSA_2', 'DYNAMOSA_3', 'DYNAMOSA_4', 'DYNAMOSA_5', 'DYNAMOSA_6', 'DYNAMOSA_7', 'DYNAMOSA_8', 'DYNAMOSA_9', 'DYNAMOSA_10', 'MOSA_1', 'MOSA_2', 'MOSA_3', 'MOSA_4', 'MOSA_5', 'MOSA_6', 'MOSA_7', 'MOSA_8', 'MOSA_9', 'MOSA_10', 'MIO_1', 'MIO_2', 'MIO_3', 'MIO_4', 'MIO_5', 'MIO_6', 'MIO_7', 'MIO_8', 'MIO_9', 'MIO_10'],
+                    datasets: [
+                        { label: 'Mutmut CPU %', data: [2.0, 1.79, 2.0, 1.79, 1.78, 1.89, 1.79, 2.0, 1.88, 1.9, 1.79, 1.45, 1.89, 1.89, 1.68, 1.68, 1.8, 1.6, 1.79, 1.6, 1.79, 1.9, 1.79, 1.5, 1.52, 1.55, 1.6, 1.61, 1.52, 1.6], borderColor: '#3498db', backgroundColor: '#3498db22', fill: true, tension: 0.3 },
+                        { label: 'Cosmic Ray CPU %', data: [2.54, 2.51, 2.9, 2.54, 2.52, 2.87, 2.73, 2.5, 2.37, 2.51, 2.4, 4.4, 2.77, 2.52, 2.74, 2.52, 2.63, 2.78, 2.62, 2.55, 2.7, 2.68, 2.49, 2.61, 2.53, 2.63, 2.96, 2.54, 2.66, 2.71], borderColor: '#e74c3c', backgroundColor: '#e74c3c22', fill: true, tension: 0.3 }
+                    ]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true, title: { display: true, text: 'CPU (%)' } } } }
+            });
+
+            // RAM Chart
+            new Chart(document.getElementById('ramChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['DYNAMOSA_1', 'DYNAMOSA_2', 'DYNAMOSA_3', 'DYNAMOSA_4', 'DYNAMOSA_5', 'DYNAMOSA_6', 'DYNAMOSA_7', 'DYNAMOSA_8', 'DYNAMOSA_9', 'DYNAMOSA_10', 'MOSA_1', 'MOSA_2', 'MOSA_3', 'MOSA_4', 'MOSA_5', 'MOSA_6', 'MOSA_7', 'MOSA_8', 'MOSA_9', 'MOSA_10', 'MIO_1', 'MIO_2', 'MIO_3', 'MIO_4', 'MIO_5', 'MIO_6', 'MIO_7', 'MIO_8', 'MIO_9', 'MIO_10'],
+                    datasets: [
+                        { label: 'Mutmut RAM (MB)', data: [112.86, 113.24, 113.49, 124.48, 113.67, 113.62, 113.23, 123.86, 113.23, 113.36, 113.36, 113.32, 113.73, 113.26, 120.54, 113.31, 113.74, 113.11, 113.62, 113.2, 127.36, 126.61, 113.23, 113.61, 113.73, 113.35, 113.62, 113.11, 113.86, 113.48], backgroundColor: '#3498db' },
+                        { label: 'Cosmic Ray RAM (MB)', data: [111.58, 111.2, 116.82, 106.56, 116.09, 105.84, 118.29, 105.65, 105.95, 110.53, 105.64, 114.07, 105.84, 113.32, 118.32, 112.04, 105.41, 118.7, 114.66, 118.21, 111.06, 116.8, 105.83, 119.21, 105.43, 118.61, 117.59, 119.71, 117.08, 114.33], backgroundColor: '#e74c3c' }
+                    ]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true, title: { display: true, text: 'RAM (MB)' } } } }
+            });
+        </script>
+    </body>
+    </html>
+    

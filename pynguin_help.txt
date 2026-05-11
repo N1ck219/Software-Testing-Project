@@ -1,0 +1,782 @@
+usage: pynguin [-h] [--version] [-v] [--no-rich] [--log-file Path]
+               --project-path str --module_name str [--algorithm Algorithm]
+               [--ignore-modules list] [--ignore-methods list]
+               [--subprocess bool] [--subprocess-if-recommended bool]
+               [--use_master_worker bool] [--filesystem_isolation bool]
+               --output-path str [--crash_path str]
+               [--export-strategy ExportStrategy] [--max-length-test-case int]
+               [--assertion-generation AssertionGenerator]
+               [--allow-stale-assertions bool]
+               [--mutation-strategy MutationStrategy] [--mutation_order int]
+               [--post-process bool] [--float-precision float]
+               [--format-with-black bool]
+               [--test-case-minimization-strategy MinimizationStrategy]
+               [--test-case-minimization-direction MinimizationDirection]
+               [--report_dir str] [--statistics_backend StatisticsBackend]
+               [--timeline_interval int] [--timeline-interpolation bool]
+               [--coverage-metrics list] [--output-variables list]
+               [--configuration-id str] [--run_id str] [--project-name str]
+               [--create-coverage-report bool] [--type-guess-top-n int]
+               [--store-test-before-execution bool]
+               [--maximum-search-time int] [--maximum-test-executions int]
+               [--maximum_statement_executions int]
+               [--maximum-slicing-time int] [--maximum_iterations int]
+               [--maximum-test-execution-timeout int] [--maximum-coverage int]
+               [--maximum-coverage-plateau int] [--minimum_coverage int]
+               [--minimum_plateau_iterations int] [--maximum_memory int]
+               [--test-execution-time-per-statement int] [--api_key str]
+               [--model_name str] [--temperature float]
+               [--hybrid-initial-population bool]
+               [--llm_test_case_percentage float]
+               [--enable-response-caching bool]
+               [--call_llm_for_uncovered_targets bool]
+               [--coverage-threshold float]
+               [--call_llm_on_stall_detection bool] [--max_plateau_len int]
+               [--max_llm_interventions int] [--random_string_weight float]
+               [--faker_string_weight float] [--fandango_string_weight float]
+               [--fandango_faker_string_weight float] [--seed int]
+               [--constant_seeding bool] [--initial_population_seeding bool]
+               [--initial_population_data str]
+               [--seeded-testcases-reuse-probability float]
+               [--initial-population-mutations int]
+               [--dynamic_constant_seeding bool]
+               [--seeded_primitives_reuse_probability float]
+               [--seeded_dynamic_values_reuse_probability float]
+               [--seed_from_archive bool]
+               [--seed-from-archive-probability float]
+               [--seed_from_archive_mutations int] [--max_dynamic_length int]
+               [--max-dynamic-pool-size int]
+               [--type-inference-strategy TypeInferenceStrategy]
+               [--type_tracing bool|float]
+               [--subtype-inference SubtypeInferenceStrategy]
+               [--type_tracing_subtype_weight float]
+               [--type_tracing_argument_type_weight float]
+               [--type-tracing-attribute-weight float]
+               [--typeevalpy_json_path str] [--ml-testing-enabled bool]
+               [--constraints-path str] [--dtype_mapping_path str]
+               [--constructor_function str]
+               [--constructor_function_parameter str] [--max-ndim int]
+               [--max-shape-dim int] [--ignore-constraints-probability float]
+               [--max-recursion int] [--max-delta int] [--max-int int]
+               [--string_length int] [--bytes_length int]
+               [--collection_size int] [--primitive_reuse_probability float]
+               [--object_reuse_probability float] [--none-weight float]
+               [--any-weight float] [--original-type-weight float]
+               [--type-tracing-weight float] [--type_tracing_kept_guesses int]
+               [--wrap_var_param_type_probability float] [--negate_type float]
+               [--skip_optional_parameter_probability float]
+               [--max_attempts int] [--insertion_uut float] [--max-size int]
+               [--use-random-object-for-call float]
+               [--generator_selection_algorithm Selection]
+               [--generator_selection_bias float]
+               [--generator_any_distance int]
+               [--generator-not-constructor-penalty float]
+               [--generator-param-penalty float]
+               [--generator_hierarchy_penalty float]
+               [--generator-any-type-penalty float] [--min_initial_tests int]
+               [--max-initial-tests int] [--population int]
+               [--chromosome-length int] [--chop_max_length bool]
+               [--elite int] [--crossover_rate float]
+               [--test-insertion-probability float]
+               [--test-delete-probability float]
+               [--test_change_probability float]
+               [--test-insert-probability float]
+               [--statement_insertion_probability float]
+               [--random_perturbation float]
+               [--change-parameter-probability float] [--tournament-size int]
+               [--rank-bias float] [--selection Selection]
+               [--use-archive bool]
+               [--filter-covered-targets-from-test-cluster bool]
+               [--number_of_mutations int]
+               [--exploitation_starts_at_percent float]
+               [--initial_config.number_of_tests_per_target int]
+               [--initial-config.random-test-or-from-archive-probability float]
+               [--initial-config.number-of-mutations int]
+               [--focused-config.number-of-tests-per-target int]
+               [--focused-config.random-test-or-from-archive-probability float]
+               [--focused_config.number_of_mutations int]
+               [--max-sequence-length int] [--max-sequences-combined int]
+               [--only-cover list] [--no-cover list]
+               [--enable-inline-pynguin-no-cover bool]
+               [--enable_inline_pragma_no_cover bool] [--local_search bool]
+               [--local_search_same_datatype bool]
+               [--local_search_different_datatype bool]
+               [--local-search-llm bool] [--local-search-primitives bool]
+               [--local_search_collections bool]
+               [--local-search-complex-objects bool]
+               [--local-search-probability float] [--local-search-time int]
+               [--ls-int-delta-increasing-factor int]
+               [--ls-string-random-mutation-count int]
+               [--ls-random-parametrized-statement-call-count int]
+               [--ls-max-different-type-mutations int]
+               [--ls_different_type_primitive_probability float]
+               [--ls_different_type_collection_probability float]
+               [--ls_dict_max_insertions int] [--ls-llm-whole-module bool]
+
+Pynguin is an automatic unit test generation framework for Python
+
+options:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+  -v, --verbose         verbose output (repeat for increased verbosity)
+                        (default: 0)
+  --no-rich, --no_rich, --poor
+                        Don't use rich for nicer consoler output. (default:
+                        False)
+  --log-file Path, --log_file Path
+                        Path to an optional log file. (default: None)
+
+Configuration ['config']:
+  General configuration for the test generator.
+
+  --project-path str, --project_path str
+                        Path to the project the generator shall create tests
+                        for. (default: None)
+  --module_name str, --module-name str
+                        Name of the module for which the generator shall
+                        create tests. (default: None)
+  --algorithm Algorithm
+                        The algorithm that shall be used for generation.
+                        (default: DYNAMOSA)
+  --ignore-modules list, --ignore_modules list
+                        Ignore the modules specified here from the module
+                        analysis. (default: [])
+  --ignore-methods list, --ignore_methods list
+                        Ignore the methods specified here from the module
+                        analysis. (default: [])
+  --subprocess bool, --nosubprocess bool
+                        Run the test generation in a subprocess. (default:
+                        False)
+  --subprocess-if-recommended bool, --subprocess_if_recommended bool, --nosubprocess-if-recommended bool, --nosubprocess_if_recommended bool
+                        Use the subprocess mode if the SUT analysis recommends
+                        it based on used C extension modules. (default: True)
+  --use_master_worker bool, --use-master-worker bool, --nouse_master_worker bool, --nouse-master-worker bool
+                        Use master-worker architecture for fault tolerance.
+                        (default: True)
+  --filesystem_isolation bool, --filesystem-isolation bool, --nofilesystem_isolation bool, --nofilesystem-isolation bool
+                        Whether to use filesystem isolation during test
+                        execution. Filesystem isolation provides some safety
+                        by tracking and controlling file operations, e.g.
+                        preventing file deletion of non-created files, but
+                        adds performance overhead. (default: False)
+
+TestCaseOutputConfiguration ['config.test_case_output']:
+  Configuration for how test cases should be output.
+
+  --output-path str, --output_path str, --test-case-output.output-path str, --test_case_output.output_path str
+                        Path to an output folder for the generated test cases.
+                        (default: None)
+  --crash_path str, --crash-path str, --test_case_output.crash_path str, --test-case-output.crash-path str
+                        Path to an output folder for the generated test cases
+                        that caused a crash. Only works when running in a
+                        subprocess. If set to "", the are stored in the
+                        output_path. (default: )
+  --export-strategy ExportStrategy, --export_strategy ExportStrategy, --test-case-output.export-strategy ExportStrategy, --test_case_output.export_strategy ExportStrategy
+                        The export strategy determines for which test-runner
+                        system the generated tests should fit. (default:
+                        PY_TEST)
+  --max-length-test-case int, --max_length_test_case int, --test-case-output.max-length-test-case int, --test_case_output.max_length_test_case int
+                        The maximum number of statement in as test case
+                        (normal + assertion statements) (default: 2500)
+  --assertion-generation AssertionGenerator, --assertion_generation AssertionGenerator, --test_case_output.assertion_generation AssertionGenerator, --test-case-output.assertion-generation AssertionGenerator
+                        The generator that shall be used for assertion
+                        generation. (default: MUTATION_ANALYSIS)
+  --allow-stale-assertions bool, --allow_stale_assertions bool, --test_case_output.allow_stale_assertions bool, --test-case-output.allow-stale-assertions bool, --noallow-stale-assertions bool, --noallow_stale_assertions bool, --test_case_output.noallow_stale_assertions bool, --test-case-output.noallow-stale-assertions bool
+                        Allow assertion on things that did not change between
+                        statement executions. (default: False)
+  --mutation-strategy MutationStrategy, --mutation_strategy MutationStrategy, --test_case_output.mutation_strategy MutationStrategy, --test-case-output.mutation-strategy MutationStrategy
+                        The strategy that shall be used for creating mutants
+                        in the mutation analysis assertion generation method.
+                        (default: FIRST_ORDER_MUTANTS)
+  --mutation_order int, --mutation-order int, --test_case_output.mutation_order int, --test-case-output.mutation-order int
+                        The order of the generated higher order mutants in the
+                        mutation analysis assertion generation method.
+                        (default: 1)
+  --post-process bool, --post_process bool, --test_case_output.post_process bool, --test-case-output.post-process bool, --nopost-process bool, --nopost_process bool, --test_case_output.nopost_process bool, --test-case-output.nopost-process bool
+                        Should the results be post processed? For example,
+                        truncate test cases after statements that raise an
+                        exception. (default: True)
+  --float-precision float, --float_precision float, --test_case_output.float_precision float, --test-case-output.float-precision float
+                        Precision to use in float comparisons and assertions
+                        (default: 0.01)
+  --format-with-black bool, --format_with_black bool, --test_case_output.format_with_black bool, --test-case-output.format-with-black bool, --noformat-with-black bool, --noformat_with_black bool, --test_case_output.noformat_with_black bool, --test-case-output.noformat-with-black bool
+                        Format the generated test cases using black. (default:
+                        True)
+
+Minimization ['config.test_case_output.minimization']:
+  Configuration for test case minimization.
+
+  --test-case-minimization-strategy MinimizationStrategy, --test_case_minimization_strategy MinimizationStrategy, --test-case-output.minimization.test-case-minimization-strategy MinimizationStrategy, --test_case_output.minimization.test_case_minimization_strategy MinimizationStrategy
+                        Strategy to apply for minimizing test cases to remove
+                        redundant statements while preserving fitness.
+                        (default: CASE)
+  --test-case-minimization-direction MinimizationDirection, --test_case_minimization_direction MinimizationDirection, --test-case-output.minimization.test-case-minimization-direction MinimizationDirection, --test_case_output.minimization.test_case_minimization_direction MinimizationDirection
+                        Direction to apply for minimizing test cases.
+                        (default: BACKWARD)
+
+StatisticsOutputConfiguration ['config.statistics_output']:
+  Configuration related to output.
+
+  --report_dir str, --report-dir str, --statistics-output.report-dir str, --statistics_output.report_dir str
+                        Directory in which to put HTML and CSV reports
+                        (default: pynguin-report)
+  --statistics_backend StatisticsBackend, --statistics-backend StatisticsBackend, --statistics-output.statistics-backend StatisticsBackend, --statistics_output.statistics_backend StatisticsBackend
+                        Which backend to use to collect data (default: CSV)
+  --timeline_interval int, --timeline-interval int, --statistics-output.timeline-interval int, --statistics_output.timeline_interval int
+                        Time interval in nano-seconds for timeline statistics,
+                        i.e., we select a data point after each interval. This
+                        can be interpolated, if there is no exact value stored
+                        at the time-step of the interval, see
+                        `timeline_interpolation`. The default value is every
+                        1.00s. (default: 1000000000)
+  --timeline-interpolation bool, --timeline_interpolation bool, --statistics_output.timeline_interpolation bool, --statistics-output.timeline-interpolation bool, --notimeline-interpolation bool, --notimeline_interpolation bool, --statistics_output.notimeline_interpolation bool, --statistics-output.notimeline-interpolation bool
+                        Interpolate timeline values (default: True)
+  --coverage-metrics list, --coverage_metrics list, --statistics-output.coverage-metrics list, --statistics_output.coverage_metrics list
+                        (default: [<CoverageMetric.BRANCH: 'BRANCH'>])
+  --output-variables list, --output_variables list, --statistics-output.output-variables list, --statistics_output.output_variables list
+                        (default: [TargetModule, Coverage])
+  --configuration-id str, --configuration_id str, --statistics_output.configuration_id str, --statistics-output.configuration-id str
+                        Label that identifies the used configuration of
+                        Pynguin. This is only done when running experiments.
+                        (default: )
+  --run_id str, --run-id str, --statistics_output.run_id str, --statistics-output.run-id str
+                        Id of the cluster run. Useful for finding the log
+                        entries that belong to a certain result. (default: )
+  --project-name str, --project_name str, --statistics-output.project-name str, --statistics_output.project_name str
+                        Label that identifies the project name of Pynguin.
+                        This is useful when running experiments. (default: )
+  --create-coverage-report bool, --create_coverage_report bool, --statistics-output.create-coverage-report bool, --statistics_output.create_coverage_report bool, --nocreate-coverage-report bool, --nocreate_coverage_report bool, --statistics-output.nocreate-coverage-report bool, --statistics_output.nocreate_coverage_report bool
+                        Create a coverage report for the tested module. This
+                        can be helpful to find hard to cover parts because
+                        Pynguin measures coverage on bytecode level which
+                        might yield different results when compared with other
+                        tools, e.g., Coverage.py. (default: False)
+  --type-guess-top-n int, --type_guess_top_n int, --statistics_output.type_guess_top_n int, --statistics-output.type-guess-top-n int
+                        When exporting type guesses for parameters, how many
+                        guesses per parameter should be exported? Expects
+                        positive integers. (default: 10)
+  --store-test-before-execution bool, --store_test_before_execution bool, --statistics_output.store_test_before_execution bool, --statistics-output.store-test-before-execution bool, --nostore-test-before-execution bool, --nostore_test_before_execution bool, --statistics_output.nostore_test_before_execution bool, --statistics-output.nostore-test-before-execution bool
+                        When enabled, each test case is written to a file
+                        before execution and removed after successful
+                        completion. If a test causes a crash, the file
+                        remains. Use with caution: Converting pynguin internal
+                        representation to a pytest test case and writing it to
+                        a file is expensive and leads to lower
+                        iterations/coverage. (default: False)
+
+StoppingConfiguration ['config.stopping']:
+  Stopping configuration.
+
+  --maximum-search-time int, --maximum_search_time int, --stopping.maximum_search_time int, --stopping.maximum-search-time int
+                        Time (in seconds) that can be used for generating
+                        tests. (default: -1)
+  --maximum-test-executions int, --maximum_test_executions int, --stopping.maximum-test-executions int, --stopping.maximum_test_executions int
+                        Maximum number of test cases to be executed. (default:
+                        -1)
+  --maximum_statement_executions int, --maximum-statement-executions int, --stopping.maximum-statement-executions int, --stopping.maximum_statement_executions int
+                        Maximum number of test cases to be executed. (default:
+                        -1)
+  --maximum-slicing-time int, --maximum_slicing_time int, --stopping.maximum_slicing_time int, --stopping.maximum-slicing-time int
+                        Time budget (in seconds) that can be used for slicing.
+                        (default: 600)
+  --maximum_iterations int, --maximum-iterations int, --stopping.maximum_iterations int, --stopping.maximum-iterations int
+                        Maximum iterations (default: -1)
+  --maximum-test-execution-timeout int, --maximum_test_execution_timeout int, --stopping.maximum-test-execution-timeout int, --stopping.maximum_test_execution_timeout int
+                        The maximum time (in seconds) after which a test case
+                        times out. (default: 5)
+  --maximum-coverage int, --maximum_coverage int, --stopping.maximum-coverage int, --stopping.maximum_coverage int
+                        The maximum percentage of coverage after which the
+                        generation shall stop. (default: 100)
+  --maximum-coverage-plateau int, --maximum_coverage_plateau int, --stopping.maximum-coverage-plateau int, --stopping.maximum_coverage_plateau int
+                        Maximum number of algorithm iterations without
+                        coverage change before the algorithms stops. (default:
+                        -1)
+  --minimum_coverage int, --minimum-coverage int, --stopping.minimum_coverage int, --stopping.minimum-coverage int
+                        Minimum coverage for the plateau-based stopping
+                        condition. Expects values larger than 0 but less than
+                        100 to activate the stopping condition; also requires
+                        the setting of minimum_plateau_iterations. (default:
+                        100)
+  --minimum_plateau_iterations int, --minimum-plateau-iterations int, --stopping.minimum_plateau_iterations int, --stopping.minimum-plateau-iterations int
+                        Minimum iterations without a coverage change to stop
+                        early. Expects values larger than 0; also requires the
+                        setting of minimum_coverage. (default: -1)
+  --maximum_memory int, --maximum-memory int, --stopping.maximum_memory int, --stopping.maximum-memory int
+                        Maximum memory usage in MB after which the generation
+                        shall stop. Expects values in MB greater than 0 of -1
+                        to disable the check. (default: 3000)
+  --test-execution-time-per-statement int, --test_execution_time_per_statement int, --stopping.test-execution-time-per-statement int, --stopping.test_execution_time_per_statement int
+                        The time (in seconds) per statement that a test is
+                        allowed to run (up to maximum_test_execution_timeout).
+                        (default: 1)
+
+LLMConfiguration ['config.large_language_model']:
+  Large Language Model(LLM) configuration.
+
+  --api_key str, --api-key str, --large-language-model.api-key str, --large_language_model.api_key str
+                        The api key to call OpenAI LLM with. (default: )
+  --model_name str, --model-name str, --large_language_model.model_name str, --large-language-model.model-name str
+                        The OpenAI Model to use for completions. (default:
+                        gpt-4o-mini)
+  --temperature float, --large-language-model.temperature float, --large_language_model.temperature float
+                        The temperature to use when querying the model. The
+                        value must be from [0.0, 1.0]. (default: 0.8)
+  --hybrid-initial-population bool, --hybrid_initial_population bool, --large_language_model.hybrid_initial_population bool, --large-language-model.hybrid-initial-population bool, --nohybrid-initial-population bool, --nohybrid_initial_population bool, --large_language_model.nohybrid_initial_population bool, --large-language-model.nohybrid-initial-population bool
+                        Whether to include the LLM test cases in the initial
+                        population. (default: False)
+  --llm_test_case_percentage float, --llm-test-case-percentage float, --large_language_model.llm_test_case_percentage float, --large-language-model.llm-test-case-percentage float
+                        The percentage of LLM test cases in on the initial
+                        population. The value must be from [0.0, 1.0].
+                        (default: 0.5)
+  --enable-response-caching bool, --enable_response_caching bool, --large-language-model.enable-response-caching bool, --large_language_model.enable_response_caching bool, --noenable-response-caching bool, --noenable_response_caching bool, --large-language-model.noenable-response-caching bool, --large_language_model.noenable_response_caching bool
+                        Whether to enable caching for responses of the model.
+                        (default: False)
+  --call_llm_for_uncovered_targets bool, --call-llm-for-uncovered-targets bool, --large-language-model.call-llm-for-uncovered-targets bool, --large_language_model.call_llm_for_uncovered_targets bool, --nocall_llm_for_uncovered_targets bool, --nocall-llm-for-uncovered-targets bool, --large-language-model.nocall-llm-for-uncovered-targets bool, --large_language_model.nocall_llm_for_uncovered_targets bool
+                        Whether to call the LLM for the uncovered targets
+                        initially. (default: False)
+  --coverage-threshold float, --coverage_threshold float, --large-language-model.coverage-threshold float, --large_language_model.coverage_threshold float
+                        The coverage threshold when to call the LLM for low-
+                        coverage targets. The value must be from [0.0, 1.0].
+                        (default: 1)
+  --call_llm_on_stall_detection bool, --call-llm-on-stall-detection bool, --large-language-model.call-llm-on-stall-detection bool, --large_language_model.call_llm_on_stall_detection bool, --nocall_llm_on_stall_detection bool, --nocall-llm-on-stall-detection bool, --large-language-model.nocall-llm-on-stall-detection bool, --large_language_model.nocall_llm_on_stall_detection bool
+                        Whether to call the LLM for the uncovered targets in
+                        coverage stalls. (default: False)
+  --max_plateau_len int, --max-plateau-len int, --large_language_model.max_plateau_len int, --large-language-model.max-plateau-len int
+                        The number of iterations to allow before soliciting
+                        the LLM. (default: 25)
+  --max_llm_interventions int, --max-llm-interventions int, --large-language-model.max-llm-interventions int, --large_language_model.max_llm_interventions int
+                        The maximum number of allowed LLM interventions.
+                        (default: 1)
+
+StringStatementConfiguration ['config.string_statement']:
+  Configuration related to string statements.
+
+  --random_string_weight float, --random-string-weight float, --string-statement.random-string-weight float, --string_statement.random_string_weight float
+                        Probability use the random generator for string
+                        statement generation. (default: 0.3)
+  --faker_string_weight float, --faker-string-weight float, --string-statement.faker-string-weight float, --string_statement.faker_string_weight float
+                        Probability use the Faker generator for string
+                        statement generation. (default: 0.3)
+  --fandango_string_weight float, --fandango-string-weight float, --string_statement.fandango_string_weight float, --string-statement.fandango-string-weight float
+                        Probability use the Fandango generator for string
+                        statement generation. (default: 0.4)
+  --fandango_faker_string_weight float, --fandango-faker-string-weight float, --string_statement.fandango_faker_string_weight float, --string-statement.fandango-faker-string-weight float
+                        Probability use the Fandango + Faker generator for
+                        string statement generation. (default: 0.0)
+
+SeedingConfiguration ['config.seeding']:
+  Seeding configuration.
+
+  --seed int, --seeding.seed int
+                        A predefined seed value for the random number
+                        generator that is used. (default: 1778336052267299295)
+  --constant_seeding bool, --constant-seeding bool, --seeding.constant-seeding bool, --seeding.constant_seeding bool, --noconstant_seeding bool, --noconstant-seeding bool, --seeding.noconstant-seeding bool, --seeding.noconstant_seeding bool
+                        Should the generator use a static constant seeding
+                        technique to improve constant generation? (default:
+                        True)
+  --initial_population_seeding bool, --initial-population-seeding bool, --seeding.initial_population_seeding bool, --seeding.initial-population-seeding bool, --noinitial_population_seeding bool, --noinitial-population-seeding bool, --seeding.noinitial_population_seeding bool, --seeding.noinitial-population-seeding bool
+                        Should the generator use previously existing testcases
+                        to seed the initial population? (default: False)
+  --initial_population_data str, --initial-population-data str, --seeding.initial_population_data str, --seeding.initial-population-data str
+                        The path to the file with the pre-existing tests. The
+                        path has to include the file itself. (default: )
+  --seeded-testcases-reuse-probability float, --seeded_testcases_reuse_probability float, --seeding.seeded-testcases-reuse-probability float, --seeding.seeded_testcases_reuse_probability float
+                        Probability of using seeded testcases when initial
+                        population seeding is enabled. (default: 0.9)
+  --initial-population-mutations int, --initial_population_mutations int, --seeding.initial-population-mutations int, --seeding.initial_population_mutations int
+                        Number of how often the testcases collected by initial
+                        population seeding should be mutated to promote
+                        diversity (default: 0)
+  --dynamic_constant_seeding bool, --dynamic-constant-seeding bool, --seeding.dynamic-constant-seeding bool, --seeding.dynamic_constant_seeding bool, --nodynamic_constant_seeding bool, --nodynamic-constant-seeding bool, --seeding.nodynamic-constant-seeding bool, --seeding.nodynamic_constant_seeding bool
+                        Enables seeding of constants at runtime. (default:
+                        True)
+  --seeded_primitives_reuse_probability float, --seeded-primitives-reuse-probability float, --seeding.seeded-primitives-reuse-probability float, --seeding.seeded_primitives_reuse_probability float
+                        Probability for using seeded primitive values instead
+                        of randomly generated ones. (default: 0.2)
+  --seeded_dynamic_values_reuse_probability float, --seeded-dynamic-values-reuse-probability float, --seeding.seeded_dynamic_values_reuse_probability float, --seeding.seeded-dynamic-values-reuse-probability float
+                        Probability of using dynamically seeded values when a
+                        primitive seeded value will be used. (default: 0.6)
+  --seed_from_archive bool, --seed-from-archive bool, --seeding.seed-from-archive bool, --seeding.seed_from_archive bool, --noseed_from_archive bool, --noseed-from-archive bool, --seeding.noseed-from-archive bool, --seeding.noseed_from_archive bool
+                        When sampling new test cases reuse some from the
+                        archive, if one is used. (default: False)
+  --seed-from-archive-probability float, --seed_from_archive_probability float, --seeding.seed-from-archive-probability float, --seeding.seed_from_archive_probability float
+                        Instead of creating a new test case, reuse a covering
+                        solution from the archive, iff an archive is used.
+                        (default: 0.2)
+  --seed_from_archive_mutations int, --seed-from-archive-mutations int, --seeding.seed_from_archive_mutations int, --seeding.seed-from-archive-mutations int
+                        Number of mutations applied when sampling from the
+                        archive. (default: 3)
+  --max_dynamic_length int, --max-dynamic-length int, --seeding.max-dynamic-length int, --seeding.max_dynamic_length int
+                        Maximum length of strings/bytes that should be stored
+                        in the dynamic constant pool. (default: 1000)
+  --max-dynamic-pool-size int, --max_dynamic_pool_size int, --seeding.max_dynamic_pool_size int, --seeding.max-dynamic-pool-size int
+                        Maximum number of constants of the same type that
+                        should be stored in the dynamic constant pool.
+                        (default: 50)
+
+TypeInferenceConfiguration ['config.type_inference']:
+  Configuration related to type inference.
+
+  --type-inference-strategy TypeInferenceStrategy, --type_inference_strategy TypeInferenceStrategy, --type_inference.type_inference_strategy TypeInferenceStrategy, --type-inference.type-inference-strategy TypeInferenceStrategy
+                        The strategy for type-inference that shall be used
+                        (default: TYPE_HINTS)
+  --type_tracing bool|float, --type-tracing bool|float, --type_inference.type_tracing bool|float, --type-inference.type-tracing bool|float
+                        Probability to trace usage of parameters with unknown
+                        types to improve type guesses during test execution.
+                        Type tracing requires a separate second. The value
+                        should be a float in [0,1]. Boolean is kept for
+                        backwards compatibility as Python internally converts
+                        True to 1.0 and False to 0.0 anyways. (default: 0.0)
+  --subtype-inference SubtypeInferenceStrategy, --subtype_inference SubtypeInferenceStrategy, --type-inference.subtype-inference SubtypeInferenceStrategy, --type_inference.subtype_inference SubtypeInferenceStrategy
+                        The strategy for subtype-inference that shall be used.
+                        (default: NONE)
+  --type_tracing_subtype_weight float, --type-tracing-subtype-weight float, --type_inference.type_tracing_subtype_weight float, --type-inference.type-tracing-subtype-weight float
+                        Weight for selecting the subtype inference strategy
+                        for type selection during type tracing. (default: 0.3)
+  --type_tracing_argument_type_weight float, --type-tracing-argument-type-weight float, --type_inference.type_tracing_argument_type_weight float, --type-inference.type-tracing-argument-type-weight float
+                        Weight for selecting the argument type inference
+                        strategy for type selection during type tracing.
+                        (default: 0.5)
+  --type-tracing-attribute-weight float, --type_tracing_attribute_weight float, --type_inference.type_tracing_attribute_weight float, --type-inference.type-tracing-attribute-weight float
+                        Weight for selecting the attribute table inference
+                        strategy for type selection during type tracing.
+                        (default: 0.2)
+  --typeevalpy_json_path str, --typeevalpy-json-path str, --type-inference.typeevalpy-json-path str, --type_inference.typeevalpy_json_path str
+                        Path to a TypeEvalPy JSON file containing type
+                        information to use during test generation. If
+                        provided, the file will be parsed and the type
+                        information will be used to improve type inference.
+                        (default: )
+
+PynguinMLConfiguration ['config.pynguinml']:
+  PynguinML configuration.
+
+  --ml-testing-enabled bool, --ml_testing_enabled bool, --pynguinml.ml-testing-enabled bool, --pynguinml.ml_testing_enabled bool, --noml-testing-enabled bool, --noml_testing_enabled bool, --pynguinml.noml-testing-enabled bool, --pynguinml.noml_testing_enabled bool
+                        Enables ML-based test generation using API
+                        constraints. When set to True, PynguinML will use
+                        constraints and other ML-specific behaviours during
+                        input generation. Note: 'constraints_path' must also
+                        be set to locate the constraints files. (default:
+                        False)
+  --constraints-path str, --constraints_path str, --pynguinml.constraints-path str, --pynguinml.constraints_path str
+                        Directory path to YAML/JSON constraints files.
+                        (default: )
+  --dtype_mapping_path str, --dtype-mapping-path str, --pynguinml.dtype_mapping_path str, --pynguinml.dtype-mapping-path str
+                        Path to a YAML/JSON file that maps library-specific
+                        datatypes to NumPy datatypes. Used by PynguinML for
+                        input generation. Specify only valid NumPy dtypes
+                        without the "np." prefix. Example: "torch.int32" ->
+                        "int32". (default: )
+  --constructor_function str, --constructor-function str, --pynguinml.constructor_function str, --pynguinml.constructor-function str
+                        Optional constructor function to build tensors (e.g.,
+                        torch.tensor or tensorflow.convert_to_tensor). Must
+                        accept a np.ndarray as input. Note: Also set
+                        'constructor_function_parameter' to specify which
+                        parameter receives the np.ndarray. (default: )
+  --constructor_function_parameter str, --constructor-function-parameter str, --pynguinml.constructor_function_parameter str, --pynguinml.constructor-function-parameter str
+                        Name of the parameter in the constructor function that
+                        receives the np.ndarray. Must be set when
+                        'constructor_function' is specified. (default: )
+  --max-ndim int, --max_ndim int, --pynguinml.max-ndim int, --pynguinml.max_ndim int
+                        Maximum number of dimensions of the tensors. If set
+                        too big, it can cause memory errors due to large
+                        tensor sizes. (default: 4)
+  --max-shape-dim int, --max_shape_dim int, --pynguinml.max-shape-dim int, --pynguinml.max_shape_dim int
+                        Maximum size of a dimension of a shape. If set too
+                        big, it can cause memory errors due to large tensor
+                        sizes. (default: 4)
+  --ignore-constraints-probability float, --ignore_constraints_probability float, --pynguinml.ignore-constraints-probability float, --pynguinml.ignore_constraints_probability float
+                        Probability of ignoring constraints and falling back
+                        to Pynguin's default behavior when constructing
+                        statements. (default: 0.25)
+
+TestCreationConfiguration ['config.test_creation']:
+  Configuration related to test creation.
+
+  --max-recursion int, --max_recursion int, --test_creation.max_recursion int, --test-creation.max-recursion int
+                        Recursion depth when trying to create objects in a
+                        test case. (default: 10)
+  --max-delta int, --max_delta int, --test_creation.max_delta int, --test-creation.max-delta int
+                        Maximum size of delta for numbers during mutation
+                        (default: 20)
+  --max-int int, --max_int int, --test_creation.max_int int, --test-creation.max-int int
+                        Maximum size of randomly generated integers (minimum
+                        range = -1 * max) (default: 2048)
+  --string_length int, --string-length int, --test-creation.string-length int, --test_creation.string_length int
+                        Maximum length of randomly generated strings (default:
+                        20)
+  --bytes_length int, --bytes-length int, --test-creation.bytes-length int, --test_creation.bytes_length int
+                        Maximum length of randomly generated bytes (default:
+                        20)
+  --collection_size int, --collection-size int, --test_creation.collection_size int, --test-creation.collection-size int
+                        Maximum length of randomly generated collections
+                        (default: 5)
+  --primitive_reuse_probability float, --primitive-reuse-probability float, --test_creation.primitive_reuse_probability float, --test-creation.primitive-reuse-probability float
+                        Probability to reuse an existing primitive in a test
+                        case, if available. Expects values in [0,1] (default:
+                        0.5)
+  --object_reuse_probability float, --object-reuse-probability float, --test_creation.object_reuse_probability float, --test-creation.object-reuse-probability float
+                        Probability to reuse an existing object in a test
+                        case, if available. Expects values in [0,1] (default:
+                        0.9)
+  --none-weight float, --none_weight float, --test_creation.none_weight float, --test-creation.none-weight float
+                        Weight to use None as parameter type during test
+                        generation. Expects values > 0. (default: 1)
+  --any-weight float, --any_weight float, --test-creation.any-weight float, --test_creation.any_weight float
+                        Weight to use Any as parameter type during test
+                        generation. Expects values > 0. (default: 5)
+  --original-type-weight float, --original_type_weight float, --test_creation.original_type_weight float, --test-creation.original-type-weight float
+                        Weight to use the originally annotated type as
+                        parameter type during test generation. Expects values
+                        > 0. (default: 5)
+  --type-tracing-weight float, --type_tracing_weight float, --test_creation.type_tracing_weight float, --test-creation.type-tracing-weight float
+                        Weight to use the type guessed from type tracing as
+                        parameter type during test generation. Expects values
+                        > 0. (default: 10)
+  --type_tracing_kept_guesses int, --type-tracing-kept-guesses int, --test_creation.type_tracing_kept_guesses int, --test-creation.type-tracing-kept-guesses int
+                        Amount of kept recently guessed types per parameter,
+                        when type tracing is used. (default: 2)
+  --wrap_var_param_type_probability float, --wrap-var-param-type-probability float, --test-creation.wrap-var-param-type-probability float, --test_creation.wrap_var_param_type_probability float
+                        Probability to wrap the type required for a ``*arg``
+                        or ``**kwargs`` parameter in a list or dict,
+                        respectively. Expects values in [0,1] (default: 0.7)
+  --negate_type float, --negate-type float, --test_creation.negate_type float, --test-creation.negate-type float
+                        When inferring a type from proxies, it may also be
+                        desirable to negate the chosen type, e.g., such that
+                        an instance check or a getattr() evaluate to False.
+                        Expects values in [0,1] (default: 0.1)
+  --skip_optional_parameter_probability float, --skip-optional-parameter-probability float, --test-creation.skip-optional-parameter-probability float, --test_creation.skip_optional_parameter_probability float
+                        Probability to skip an optional parameter, i.e., do
+                        not fill such a parameter. (default: 0.7)
+  --max_attempts int, --max-attempts int, --test_creation.max_attempts int, --test-creation.max-attempts int
+                        Number of attempts when generating an object before
+                        giving up (default: 1000)
+  --insertion_uut float, --insertion-uut float, --test_creation.insertion_uut float, --test-creation.insertion-uut float
+                        Score for selection of insertion of UUT calls
+                        (default: 0.5)
+  --max-size int, --max_size int, --test-creation.max-size int, --test_creation.max_size int
+                        Maximum number of test cases in a test suite (default:
+                        100)
+  --use-random-object-for-call float, --use_random_object_for_call float, --test_creation.use_random_object_for_call float, --test-creation.use-random-object-for-call float
+                        When adding or modifying a call on an object, use a
+                        random modifier instead of only modifiers for that
+                        type. Expects values in [0, 1]. (default: 0.1)
+
+GeneratorSelectionConfiguration ['config.generator_selection']:
+  Configuration related to selecting a generator for a certain type.
+
+  --generator_selection_algorithm Selection, --generator-selection-algorithm Selection, --generator_selection.generator_selection_algorithm Selection, --generator-selection.generator-selection-algorithm Selection
+                        The selection algorithm to use for selecting the
+                        generator for a statement. Currently only
+                        RANK_SELECTION is supported. (default: RANK_SELECTION)
+  --generator_selection_bias float, --generator-selection-bias float, --generator-selection.generator-selection-bias float, --generator_selection.generator_selection_bias float
+                        The bias to use for rank selection when selecting the
+                        generator for a statement. Expects values in [1.0,
+                        2.0]. 1.0 is random selection, higher values bias
+                        towards higher ranked generators. A value above 2.0
+                        leads to cutting off the lower ranked generators.
+                        (default: 1.7)
+  --generator_any_distance int, --generator-any-distance int, --generator_selection.generator_any_distance int, --generator-selection.generator-any-distance int
+                        The distance to and from the any type to any other
+                        type in the type hierarchy. As the any type is a
+                        super- and subtype of all type but it is most likely
+                        not the type we want, we want to punish it in the type
+                        selection process. (default: 30)
+  --generator-not-constructor-penalty float, --generator_not_constructor_penalty float, --generator_selection.generator_not_constructor_penalty float, --generator-selection.generator-not-constructor-penalty float
+                        Penalty for selecting a generator that is not a
+                        __init__ method. (default: 10.0)
+  --generator-param-penalty float, --generator_param_penalty float, --generator_selection.generator_param_penalty float, --generator-selection.generator-param-penalty float
+                        Penalty for each parameter of the generator. (default:
+                        1.0)
+  --generator_hierarchy_penalty float, --generator-hierarchy-penalty float, --generator_selection.generator_hierarchy_penalty float, --generator-selection.generator-hierarchy-penalty float
+                        Penalty for the distance between the generators type
+                        and the desired type. The penalty is multiplied with
+                        the distance in the type hierarchy. (default: 1.0)
+  --generator-any-type-penalty float, --generator_any_type_penalty float, --generator-selection.generator-any-type-penalty float, --generator_selection.generator_any_type_penalty float
+                        Penalty for selecting a generator that returns only
+                        Any. While Any is always a valid type, we still want
+                        to avoid it as a generator. (default: 100.0)
+
+SearchAlgorithmConfiguration ['config.search_algorithm']:
+  General configuration for search algorithms.
+
+  --min_initial_tests int, --min-initial-tests int, --search_algorithm.min_initial_tests int, --search-algorithm.min-initial-tests int
+                        Minimum number of tests in initial test suites
+                        (default: 1)
+  --max-initial-tests int, --max_initial_tests int, --search_algorithm.max_initial_tests int, --search-algorithm.max-initial-tests int
+                        Maximum number of tests in initial test suites
+                        (default: 10)
+  --population int, --search-algorithm.population int, --search_algorithm.population int
+                        Population size of genetic algorithm (default: 10)
+  --chromosome-length int, --chromosome_length int, --search-algorithm.chromosome-length int, --search_algorithm.chromosome_length int
+                        Maximum length of chromosomes during search (default:
+                        48)
+  --chop_max_length bool, --chop-max-length bool, --search-algorithm.chop-max-length bool, --search_algorithm.chop_max_length bool, --nochop_max_length bool, --nochop-max-length bool, --search-algorithm.nochop-max-length bool, --search_algorithm.nochop_max_length bool
+                        Chop statements after exception if length has reached
+                        maximum (default: True)
+  --elite int, --search_algorithm.elite int, --search-algorithm.elite int
+                        Elite size for search algorithm (default: 1)
+  --crossover_rate float, --crossover-rate float, --search_algorithm.crossover_rate float, --search-algorithm.crossover-rate float
+                        Probability of crossover (default: 0.648)
+  --test-insertion-probability float, --test_insertion_probability float, --search-algorithm.test-insertion-probability float, --search_algorithm.test_insertion_probability float
+                        Initial probability of inserting a new test in a test
+                        suite (default: 0.1)
+  --test-delete-probability float, --test_delete_probability float, --search_algorithm.test_delete_probability float, --search-algorithm.test-delete-probability float
+                        Probability of deleting statements during mutation
+                        (default: 0.3333333333333333)
+  --test_change_probability float, --test-change-probability float, --search-algorithm.test-change-probability float, --search_algorithm.test_change_probability float
+                        Probability of changing statements during mutation
+                        (default: 0.3333333333333333)
+  --test-insert-probability float, --test_insert_probability float, --search-algorithm.test-insert-probability float, --search_algorithm.test_insert_probability float
+                        Probability of inserting new statements during
+                        mutation (default: 0.3333333333333333)
+  --statement_insertion_probability float, --statement-insertion-probability float, --search-algorithm.statement-insertion-probability float, --search_algorithm.statement_insertion_probability float
+                        Initial probability of inserting a new statement in a
+                        test case (default: 0.5)
+  --random_perturbation float, --random-perturbation float, --search-algorithm.random-perturbation float, --search_algorithm.random_perturbation float
+                        Probability to replace a primitive with a random new
+                        value rather than adding a delta. (default: 0.2)
+  --change-parameter-probability float, --change_parameter_probability float, --search_algorithm.change_parameter_probability float, --search-algorithm.change-parameter-probability float
+                        Probability of replacing parameters when mutating a
+                        method or constructor statement in a test case.
+                        Expects values in [0,1] (default: 0.1)
+  --tournament-size int, --tournament_size int, --search_algorithm.tournament_size int, --search-algorithm.tournament-size int
+                        Number of individuals for tournament selection.
+                        (default: 4)
+  --rank-bias float, --rank_bias float, --search_algorithm.rank_bias float, --search-algorithm.rank-bias float
+                        Bias for better individuals in rank selection
+                        (default: 1.68)
+  --selection Selection, --search-algorithm.selection Selection, --search_algorithm.selection Selection
+                        The selection operator for genetic algorithms.
+                        (default: RANK_SELECTION)
+  --use-archive bool, --use_archive bool, --search-algorithm.use-archive bool, --search_algorithm.use_archive bool, --nouse-archive bool, --nouse_archive bool, --search-algorithm.nouse-archive bool, --search_algorithm.nouse_archive bool
+                        Some algorithms can be enhanced with an optional
+                        archive, e.g. Whole Suite -> Whole Suite + Archive.
+                        Use this option to enable the usage of an archive.
+                        Algorithms that always use an archive are not affected
+                        by this option. (default: False)
+  --filter-covered-targets-from-test-cluster bool, --filter_covered_targets_from_test_cluster bool, --search-algorithm.filter-covered-targets-from-test-cluster bool, --search_algorithm.filter_covered_targets_from_test_cluster bool, --nofilter-covered-targets-from-test-cluster bool, --nofilter_covered_targets_from_test_cluster bool, --search-algorithm.nofilter-covered-targets-from-test-cluster bool, --search_algorithm.nofilter_covered_targets_from_test_cluster bool
+                        Focus search by filtering out elements from the test
+                        cluster when they are fully covered. (default: False)
+  --number_of_mutations int, --number-of-mutations int, --search-algorithm.number-of-mutations int, --search_algorithm.number_of_mutations int
+                        Number of mutations that should be applied in one
+                        breeding step. (default: 3)
+
+MIOConfiguration ['config.mio']:
+  Configuration used for the MIO algorithm.
+
+  --exploitation_starts_at_percent float, --exploitation-starts-at-percent float, --mio.exploitation-starts-at-percent float, --mio.exploitation_starts_at_percent float
+                        Percentage ]0,1] of search budget after which
+                        exploitation is activated, i.e., switching to focused
+                        phase. (default: 0.5)
+
+MIOPhaseConfiguration ['config.mio.initial_config']:
+  Configuration for a phase of MIO.
+
+  --initial_config.number_of_tests_per_target int, --initial-config.number-of-tests-per-target int, --mio.initial-config.number-of-tests-per-target int, --mio.initial_config.number_of_tests_per_target int
+                        Number of test cases for each target goal to keep in
+                        an archive. (default: 10)
+  --initial-config.random-test-or-from-archive-probability float, --initial_config.random_test_or_from_archive_probability float, --mio.initial_config.random_test_or_from_archive_probability float, --mio.initial-config.random-test-or-from-archive-probability float
+                        Probability [0,1] of sampling a new test at random or
+                        choose an existing one in an archive. (default: 0.5)
+  --initial-config.number-of-mutations int, --initial_config.number_of_mutations int, --mio.initial-config.number-of-mutations int, --mio.initial_config.number_of_mutations int
+                        Number of mutations allowed to be done on the same
+                        individual before sampling a new one. (default: 1)
+
+MIOPhaseConfiguration ['config.mio.focused_config']:
+  Configuration for a phase of MIO.
+
+  --focused-config.number-of-tests-per-target int, --focused_config.number_of_tests_per_target int, --mio.focused-config.number-of-tests-per-target int, --mio.focused_config.number_of_tests_per_target int
+                        Number of test cases for each target goal to keep in
+                        an archive. (default: 1)
+  --focused-config.random-test-or-from-archive-probability float, --focused_config.random_test_or_from_archive_probability float, --mio.focused-config.random-test-or-from-archive-probability float, --mio.focused_config.random_test_or_from_archive_probability float
+                        Probability [0,1] of sampling a new test at random or
+                        choose an existing one in an archive. (default: 0.0)
+  --focused_config.number_of_mutations int, --focused-config.number-of-mutations int, --mio.focused_config.number_of_mutations int, --mio.focused-config.number-of-mutations int
+                        Number of mutations allowed to be done on the same
+                        individual before sampling a new one. (default: 10)
+
+RandomConfiguration ['config.random']:
+  Configuration used for the RANDOM algorithm.
+
+  --max-sequence-length int, --max_sequence_length int, --random.max_sequence_length int, --random.max-sequence-length int
+                        The maximum length of sequences that are generated, 0
+                        means infinite. (default: 10)
+  --max-sequences-combined int, --max_sequences_combined int, --random.max_sequences_combined int, --random.max-sequences-combined int
+                        The maximum number of combined sequences, 0 means
+                        infinite. (default: 10)
+
+ToCoverConfiguration ['config.to_cover']:
+  Configuration of which code elements are included or excluded as coverage goals.
+
+  --only-cover list, --only_cover list, --to_cover.only_cover list, --to-cover.only-cover list
+                        The list of space-separated qualified function, method
+                        or class names to only cover. (default: [])
+  --no-cover list, --no_cover list, --to_cover.no_cover list, --to-cover.no-cover list
+                        The list of space-separated qualified function, method
+                        or class names to not cover. Automatically include the
+                        methods of the `ignore_methods` argument. (default:
+                        [])
+  --enable-inline-pynguin-no-cover bool, --enable_inline_pynguin_no_cover bool, --to-cover.enable-inline-pynguin-no-cover bool, --to_cover.enable_inline_pynguin_no_cover bool, --noenable-inline-pynguin-no-cover bool, --noenable_inline_pynguin_no_cover bool, --to-cover.noenable-inline-pynguin-no-cover bool, --to_cover.noenable_inline_pynguin_no_cover bool
+                        Enable inline ``pynguin: no cover``. (default: True)
+  --enable_inline_pragma_no_cover bool, --enable-inline-pragma-no-cover bool, --to-cover.enable-inline-pragma-no-cover bool, --to_cover.enable_inline_pragma_no_cover bool, --noenable_inline_pragma_no_cover bool, --noenable-inline-pragma-no-cover bool, --to-cover.noenable-inline-pragma-no-cover bool, --to_cover.noenable_inline_pragma_no_cover bool
+                        Enable inline ``pragma: no cover``. (default: True)
+
+LocalSearchConfiguration ['config.local_search']:
+  Configurations for local search.
+
+  --local_search bool, --local-search bool, --local-search.local-search bool, --local_search.local_search bool, --nolocal_search bool, --nolocal-search bool, --local-search.nolocal-search bool, --local_search.nolocal_search bool
+                        Defines if local search is generally enabled or not
+                        (default: True)
+  --local_search_same_datatype bool, --local-search-same-datatype bool, --local_search.local_search_same_datatype bool, --local-search.local-search-same-datatype bool, --nolocal_search_same_datatype bool, --nolocal-search-same-datatype bool, --local_search.nolocal_search_same_datatype bool, --local-search.nolocal-search-same-datatype bool
+                        Defines if local search within same datatype is
+                        enabled or not (default: True)
+  --local_search_different_datatype bool, --local-search-different-datatype bool, --local_search.local_search_different_datatype bool, --local-search.local-search-different-datatype bool, --nolocal_search_different_datatype bool, --nolocal-search-different-datatype bool, --local_search.nolocal_search_different_datatype bool, --local-search.nolocal-search-different-datatype bool
+                        Defines if local search with different datatypes is
+                        enabled or not (default: False)
+  --local-search-llm bool, --local_search_llm bool, --local-search.local-search-llm bool, --local_search.local_search_llm bool, --nolocal-search-llm bool, --nolocal_search_llm bool, --local-search.nolocal-search-llm bool, --local_search.nolocal_search_llm bool
+                        Defines if local search with llm is enabled or not
+                        (default: False)
+  --local-search-primitives bool, --local_search_primitives bool, --local-search.local-search-primitives bool, --local_search.local_search_primitives bool, --nolocal-search-primitives bool, --nolocal_search_primitives bool, --local-search.nolocal-search-primitives bool, --local_search.nolocal_search_primitives bool
+                        Toggles if local search for primitive types is enabled
+                        or not (default: True)
+  --local_search_collections bool, --local-search-collections bool, --local_search.local_search_collections bool, --local-search.local-search-collections bool, --nolocal_search_collections bool, --nolocal-search-collections bool, --local_search.nolocal_search_collections bool, --local-search.nolocal-search-collections bool
+                        Toggles if local search for collection types is
+                        enabled or not (default: False)
+  --local-search-complex-objects bool, --local_search_complex_objects bool, --local-search.local-search-complex-objects bool, --local_search.local_search_complex_objects bool, --nolocal-search-complex-objects bool, --nolocal_search_complex_objects bool, --local-search.nolocal-search-complex-objects bool, --local_search.nolocal_search_complex_objects bool
+                        Toggles if local search for complex object types is
+                        enabled or not (default: False)
+  --local-search-probability float, --local_search_probability float, --local-search.local-search-probability float, --local_search.local_search_probability float
+                        Probability of starting local search on the specific
+                        candidate (default: 0.02)
+  --local-search-time int, --local_search_time int, --local_search.local_search_time int, --local-search.local-search-time int
+                        The budget which each local search iteration has in
+                        ms. (default: 5000)
+  --ls-int-delta-increasing-factor int, --ls_int_delta_increasing_factor int, --local_search.ls_int_delta_increasing_factor int, --local-search.ls-int-delta-increasing-factor int
+                        The factor which defines how much the delta should
+                        increase for each iteration for integer local search.
+                        (default: 2)
+  --ls-string-random-mutation-count int, --ls_string_random_mutation_count int, --local-search.ls-string-random-mutation-count int, --local_search.ls_string_random_mutation_count int
+                        The number of mutations made to the string to
+                        determine if it's worth to completely mutate the
+                        string. (default: 10)
+  --ls-random-parametrized-statement-call-count int, --ls_random_parametrized_statement_call_count int, --local_search.ls_random_parametrized_statement_call_count int, --local-search.ls-random-parametrized-statement-call-count int
+                        The number of mutations made to a parametrized
+                        statement call to determine if it's worth to further
+                        do local search (default: 10)
+  --ls-max-different-type-mutations int, --ls_max_different_type_mutations int, --local-search.ls-max-different-type-mutations int, --local_search.ls_max_different_type_mutations int
+                        The max number of searches for different datatypes
+                        (default: 10)
+  --ls_different_type_primitive_probability float, --ls-different-type-primitive-probability float, --local_search.ls_different_type_primitive_probability float, --local-search.ls-different-type-primitive-probability float
+                        Weight of generating primitive statements when
+                        changing the statement type. (default: 0.3)
+  --ls_different_type_collection_probability float, --ls-different-type-collection-probability float, --local_search.ls_different_type_collection_probability float, --local-search.ls-different-type-collection-probability float
+                        Weight of generating collection statements when
+                        changing the statement type. (default: 0.3)
+  --ls_dict_max_insertions int, --ls-dict-max-insertions int, --local_search.ls_dict_max_insertions int, --local-search.ls-dict-max-insertions int
+                        Max number of unsuccessful insertions of entries.
+                        (default: 10)
+  --ls-llm-whole-module bool, --ls_llm_whole_module bool, --local-search.ls-llm-whole-module bool, --local_search.ls_llm_whole_module bool, --nols-llm-whole-module bool, --nols_llm_whole_module bool, --local-search.nols-llm-whole-module bool, --local_search.nols_llm_whole_module bool
+                        Whether to provide the whole module or selected
+                        functions/methods to the LLM for context when
+                        performing llm local search. (default: False)
