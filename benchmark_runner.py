@@ -5,9 +5,70 @@ import os
 import shutil
 import re
 from pathlib import Path
+import psutil
+import threading
 
+# Configurazione Globali
 NUM_RUNS = 2 if os.environ.get("CI") else 2
+# ALGORITHMS = ["DYNAMOSA", "WHOLE_SUITE", "MIO"]
+ALGORITHMS = ["DYNAMOSA", "MIO"]
+PYNGUIN_SEARCH_BUDGET = 60 # Budget in secondi per la ricerca dei test
 RESULTS_FILE = "results/benchmark_data.json"
+
+def monitor_resources(pid, interval=0.5):
+    """Monitora CPU (%) e RAM (MB) di un processo e dei suoi figli in background."""
+    cpu_samples = []
+    ram_samples = []
+    stop_event = threading.Event()
+    
+    def target():
+        try:
+            parent = psutil.Process(pid)
+            # Warmup
+            parent.cpu_percent(interval=None)
+        except psutil.NoSuchProcess:
+            return
+
+        while not stop_event.is_set():
+            try:
+                if not parent.is_running():
+                    break
+                
+                procs = [parent] + parent.children(recursive=True)
+                total_cpu = 0
+                total_ram = 0
+                
+                for p in procs:
+                    try:
+                        total_cpu += p.cpu_percent(interval=None)
+                        total_ram += p.memory_info().rss
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                        pass
+                
+                if total_cpu > 0: # Salta i campioni a zero (iniziali)
+                    cpu_samples.append(total_cpu)
+                ram_samples.append(total_ram / (1024 * 1024))
+                
+                time.sleep(interval)
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                break
+
+    thread = threading.Thread(target=target)
+    thread.start()
+    return stop_event, thread, cpu_samples, ram_samples
+
+def get_averages(cpu_samples, ram_samples):
+    """Calcola le medie dai campioni raccolti."""
+    avg_cpu = sum(cpu_samples) / len(cpu_samples) if cpu_samples else 0.0
+    avg_ram = sum(ram_samples) / len(ram_samples) if ram_samples else 0.0
+    return round(avg_cpu, 2), round(avg_ram, 2)
+
+def get_bin_path(name):
+    """Restituisce il percorso del binario nella venv se esiste, altrimenti il nome."""
+    venv_bin = Path(".venv/bin") / name
+    if venv_bin.exists():
+        return str(venv_bin)
+    return name
 
 def setup_directories():
     """Inizializza le cartelle e pulisce i vecchi dati globali una sola volta all'avvio."""
@@ -59,58 +120,64 @@ def clean_run_cache():
         tests_path.mkdir(exist_ok=True)
         (tests_path / ".gitkeep").touch()
 
-def run_pynguin():
-    """Esegue Pynguin per generare una nuova suite di test."""
-    print("   🤖 Generazione test con Pynguin...")
+def run_pynguin(algorithm):
+    """Esegue Pynguin per generare una nuova suite di test con l'algoritmo specificato."""
+    print(f"   🤖 Generazione test con Pynguin ({algorithm})...")
     env = os.environ.copy()
     env["PYNGUIN_DANGER_AWARE"] = "true"
     
     cmd = [
-        "pynguin",
+        get_bin_path("pynguin"),
         "--project-path", "./benchmark",
         "--module-name", "triangle",
         "--output-path", "./tests",
         "--assertion-generation", "MUTATION_ANALYSIS",
+        "--algorithm", algorithm,
+        "--maximum-search-time", str(PYNGUIN_SEARCH_BUDGET)
     ]
     
     start_time = time.time()
     subprocess.run(cmd, env=env, capture_output=True, text=True)
     return time.time() - start_time
 
-def run_mutmut(run_id):
-    """Esegue Mutmut, estrae il punteggio e genera il report HTML tramite bash."""
+def run_mutmut(run_id, algorithm):
+    """Esegue Mutmut, estrae il punteggio e genera il report HTML."""
     print("   👾 Esecuzione Mutmut...")
 
-    # --- INIZIO CONFIGURAZIONE DINAMICA ---
-    # Controlla se siamo su GitHub (CI) o sul tuo PC locale
     is_ci = os.environ.get("CI")
     runner_cmd = "pytest" if is_ci else ".venv/bin/pytest"
     
-    # Scrive (o sovrascrive) il file setup.cfg con il runner corretto
     setup_cfg_content = f"""[mutmut]
     paths_to_mutate=benchmark/
     runner={runner_cmd}
     """
     with open("setup.cfg", "w") as f:
         f.write(setup_cfg_content)
-    # --- FINE CONFIGURAZIONE DINAMICA ---
     
     start_time = time.time()
-    run_result = subprocess.run(["mutmut", "run"], capture_output=True, text=True)
-    execution_time = time.time() - start_time
     
-    # Estrae i risultati testuali dall'output di run
+    proc = subprocess.Popen([get_bin_path("mutmut"), "run"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    stop_event, monitor_thread, cpu_samples, ram_samples = monitor_resources(proc.pid)
+    
+    stdout, stderr = proc.communicate()
+    stop_event.set()
+    monitor_thread.join()
+    
+    execution_time = time.time() - start_time
+    avg_cpu, avg_ram = get_averages(cpu_samples, ram_samples)
+    
     killed, survived = 0, 0
-    matches_k = re.findall(r"🎉\s*(\d+)", run_result.stdout)
-    matches_s = re.findall(r"🙁\s*(\d+)", run_result.stdout)
+    matches_k = re.findall(r"🎉\s*(\d+)", stdout)
+    matches_s = re.findall(r"🙁\s*(\d+)", stdout)
     if matches_k: killed = int(matches_k[-1])
     if matches_s: survived = int(matches_s[-1])
     
     total = killed + survived
     score = (killed / total * 100) if total > 0 else 0.0
 
-    # Genera report HTML usando il comando Bash richiesto
-    bash_cmd = f"mutmut html && rm -rf results/mutmut/run_{run_id}_htmlcov && mv html results/mutmut/run_{run_id}_htmlcov"
+    mutmut_bin = get_bin_path("mutmut")
+    report_dir = f"results/mutmut/{algorithm}_run_{run_id}_htmlcov"
+    bash_cmd = f"{mutmut_bin} html && rm -rf {report_dir} && mv html {report_dir}"
     subprocess.run(bash_cmd, shell=True, executable="/bin/bash")
     
     print(f"   👾 Mutmut: Uccisi {killed} mutanti, Sopravvissuti {survived} mutanti, Tempo {execution_time:.2f}s")
@@ -121,20 +188,28 @@ def run_mutmut(run_id):
         "killed": killed,
         "survived": survived,
         "total": total,
-        "mutation_score": round(score, 2)
+        "mutation_score": round(score, 2),
+        "cpu_avg": avg_cpu,
+        "ram_avg": avg_ram
     }
 
-def run_cosmic_ray(run_id):
-    """Esegue Cosmic Ray, estrae il punteggio e genera il report HTML tramite bash."""
+def run_cosmic_ray(run_id, algorithm):
+    """Esegue Cosmic Ray, estrae il punteggio e genera il report HTML."""
     print("   🚀 Esecuzione Cosmic Ray...")
-    subprocess.run(["cosmic-ray", "init", "cosmic-ray.toml", "session.sqlite"], capture_output=True)
+    subprocess.run([get_bin_path("cosmic-ray"), "init", "cosmic-ray.toml", "session.sqlite"], capture_output=True)
     
     start_time = time.time()
-    subprocess.run(["cosmic-ray", "exec", "cosmic-ray.toml", "session.sqlite"], capture_output=True)
-    execution_time = time.time() - start_time
+    proc = subprocess.Popen([get_bin_path("cosmic-ray"), "exec", "cosmic-ray.toml", "session.sqlite"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    stop_event, monitor_thread, cpu_samples, ram_samples = monitor_resources(proc.pid)
     
-    # Estrae risultati
-    result = subprocess.run(["cr-report", "session.sqlite"], capture_output=True, text=True)
+    proc.communicate()
+    stop_event.set()
+    monitor_thread.join()
+    
+    execution_time = time.time() - start_time
+    avg_cpu, avg_ram = get_averages(cpu_samples, ram_samples)
+    
+    result = subprocess.run([get_bin_path("cr-report"), "session.sqlite"], capture_output=True, text=True)
     total_jobs, completed, survived, survival_rate = 0, 0, 0, 0.0
     
     match_t = re.search(r"total jobs:\s*(\d+)", result.stdout, re.IGNORECASE)
@@ -150,8 +225,9 @@ def run_cosmic_ray(run_id):
     killed = completed - survived
     score = 100.0 - survival_rate if completed > 0 else 0.0
 
-    # Genera report HTML usando il comando Bash richiesto
-    bash_cmd = f"cr-html session.sqlite > results/cosmic_ray/run_{run_id}_report.html"
+    cr_html_bin = get_bin_path("cr-html")
+    report_file = f"results/cosmic_ray/{algorithm}_run_{run_id}_report.html"
+    bash_cmd = f"{cr_html_bin} session.sqlite > {report_file}"
     subprocess.run(bash_cmd, shell=True, executable="/bin/bash")
     
     print(f"   🚀 Cosmic Ray: Uccisi {killed} mutanti, Sopravvissuti {survived} mutanti, Tempo {execution_time:.2f}s")
@@ -163,125 +239,250 @@ def run_cosmic_ray(run_id):
         "completed": completed,
         "survived": survived,
         "survival_rate": survival_rate,
-        "mutation_score": round(score, 2)
+        "mutation_score": round(score, 2),
+        "cpu_avg": avg_cpu,
+        "ram_avg": avg_ram
     }
 
 def generate_comparison_report(data):
-    """Genera la dashboard HTML con grafici a colonne per il confronto run-by-run."""
+    """Genera la dashboard HTML con confronto tra algoritmi e strumenti."""
     print("\n   📊 Generazione Dashboard Finale...")
     
-    # Calcolo Medie per i Gauges
-    avg_mut_score = sum(r['mutmut']['mutation_score'] for r in data) / len(data)
-    avg_cr_score = sum(r['cosmic_ray']['mutation_score'] for r in data) / len(data)
-    avg_mut_time = sum(r['mutmut']['time'] for r in data) / len(data)
-    avg_cr_time = sum(r['cosmic_ray']['time'] for r in data) / len(data)
+    # Raggruppamento per Algoritmo
+    algs_found = sorted(list(set(r['algorithm'] for r in data)))
+    
+    # Calcolo Medie per ogni combinazione Algoritmo/Tool
+    stats = {}
+    for alg in algs_found:
+        runs = [r for r in data if r['algorithm'] == alg]
+        stats[alg] = {
+            "mutmut": {
+                "score": sum(r['mutmut']['mutation_score'] for r in runs) / len(runs),
+                "time": sum(r['mutmut']['time'] for r in runs) / len(runs),
+                "cpu": sum(r['mutmut']['cpu_avg'] for r in runs) / len(runs),
+                "ram": sum(r['mutmut']['ram_avg'] for r in runs) / len(runs)
+            },
+            "cosmic_ray": {
+                "score": sum(r['cosmic_ray']['mutation_score'] for r in runs) / len(runs),
+                "time": sum(r['cosmic_ray']['time'] for r in runs) / len(runs),
+                "cpu": sum(r['cosmic_ray']['cpu_avg'] for r in runs) / len(runs),
+                "ram": sum(r['cosmic_ray']['ram_avg'] for r in runs) / len(runs)
+            }
+        }
 
-    # Preparazione dati per i grafici
-    labels = [f"Run {r['run_id']}" for r in data]
-    mut_scores = [r['mutmut']['mutation_score'] for r in data]
-    cr_scores = [r['cosmic_ray']['mutation_score'] for r in data]
-
-    def get_color(score):
-        if score >= 80: return "#2ecc71", "✅ Suite Robusta"
-        if score >= 50: return "#f39c12", "⚠️ Suite Discreta"
-        return "#e74c3c", "❌ Suite Debole"
-
-    mut_color, mut_text = get_color(avg_mut_score)
-    cr_color, cr_text = get_color(avg_cr_score)
+    # Preparazione dati per i grafici a confronto (MOSA vs MIO)
+    mut_scores = [stats[alg]['mutmut']['score'] for alg in algs_found]
+    cr_scores = [stats[alg]['cosmic_ray']['score'] for alg in algs_found]
+    
+    mut_times = [stats[alg]['mutmut']['time'] for alg in algs_found]
+    cr_times = [stats[alg]['cosmic_ray']['time'] for alg in algs_found]
 
     html_content = f"""
     <!DOCTYPE html>
     <html lang="it">
     <head>
         <meta charset="UTF-8">
-        <title>Benchmark Mutation Testing Report</title>
+        <title>Benchmark Mutation Testing: Strategy Comparison</title>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <style>
             body {{ font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 40px; color: #1c1e21; }}
             .container {{ max-width: 1200px; margin: auto; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }}
             .header {{ text-align: center; margin-bottom: 50px; border-bottom: 2px solid #f0f2f5; padding-bottom: 20px; }}
-            .gauge-section {{ display: flex; justify-content: space-around; margin-bottom: 60px; }}
-            .gauge-card {{ text-align: center; width: 45%; padding: 25px; border-radius: 12px; background: #fff; border: 1px solid #e0e0e0; }}
-            .gauge {{ width: 180px; height: 180px; border-radius: 50%; margin: 20px auto; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; transition: transform 0.3s; }}
-            .gauge:hover {{ transform: scale(1.05); }}
-            .chart-container {{ margin-bottom: 60px; padding: 30px; background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; }}
-            .status-label {{ display: inline-block; padding: 8px 20px; border-radius: 20px; font-size: 16px; margin-top: 15px; font-weight: bold; }}
+            .chart-section {{ display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px; }}
+            .chart-container {{ width: calc(50% - 10px); box-sizing: border-box; margin-bottom: 40px; padding: 25px; background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; }}
+            h2 {{ color: #2c3e50; margin-bottom: 30px; text-align: center; font-size: 28px; }}
             h3 {{ color: #2c3e50; border-left: 5px solid #3498db; padding-left: 15px; margin-bottom: 25px; }}
+            .report-btn {{ display: inline-block; padding: 4px 10px; margin: 2px; background: #3498db; color: white; text-decoration: none; border-radius: 4px; font-size: 12px; transition: background 0.2s; }}
+            .report-btn:hover {{ background: #2980b9; }}
+            .cr-btn {{ background: #e74c3c; }}
+            .cr-btn:hover {{ background: #c0392b; }}
+            .summary-table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
+            .summary-table th, .summary-table td {{ padding: 12px; border: 1px solid #eee; text-align: center; }}
+            .summary-table th {{ background: #f8f9fa; color: #2c3e50; }}
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <h1>📊 Risultati Benchmark: Mutmut vs Cosmic Ray</h1>
-                <p>Analisi statistica basata su <strong>{len(data)} Run</strong> complete</p>
+                <h1>📊 Strategie Pynguin a Confronto: {', '.join(algs_found)}</h1>
+                <p>Analisi delle performance basata su <strong>{NUM_RUNS} Run</strong> per ogni strategia</p>
             </div>
 
-            <div class="gauge-section">
-                <div class="gauge-card">
-                    <h2>👾 Mutmut (Media Totale)</h2>
-                    <div class="gauge" style="background: conic-gradient({mut_color} {avg_mut_score}%, #eee 0%); shadow: inset 0 0 10px rgba(0,0,0,0.1);">
-                        <div style="background: white; width: 140px; height: 140px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2c3e50;">{avg_mut_score:.1f}%</div>
-                    </div>
-                    <div class="status-label" style="background: {mut_color}15; color: {mut_color}; border: 1px solid {mut_color};">{mut_text}</div>
-                    <p>Tempo medio: <strong>{avg_mut_time:.2f}s</strong></p>
-                </div>
-
-                <div class="gauge-card">
-                    <h2>🚀 Cosmic Ray (Media Totale)</h2>
-                    <div class="gauge" style="background: conic-gradient({cr_color} {avg_cr_score}%, #eee 0%);">
-                        <div style="background: white; width: 140px; height: 140px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2c3e50;">{avg_cr_score:.1f}%</div>
-                    </div>
-                    <div class="status-label" style="background: {cr_color}15; color: {cr_color}; border: 1px solid {cr_color};">{cr_text}</div>
-                    <p>Tempo medio: <strong>{avg_cr_time:.2f}s</strong></p>
+            <h2>Confronto Efficacia (Mutation Score)</h2>
+            <div class="chart-section">
+                <div class="chart-container" style="width: 100%;">
+                    <canvas id="scoreComparisonChart"></canvas>
                 </div>
             </div>
 
-            <div class="chart-container">
-                <h3>📊 Confronto Mutation Score per Run (Killed %)</h3>
-                <canvas id="scoreChart"></canvas>
+            <div class="chart-section">
+                <div class="chart-container" style="width: 100%;">
+                    <h3>⏱️ Tempo di Esecuzione Medio (s)</h3>
+                    <canvas id="timeChart"></canvas>
+                </div>
             </div>
+
+            <div class="chart-section">
+                <div class="chart-container">
+                    <h3>💻 Utilizzo CPU Medio (%)</h3>
+                    <canvas id="cpuChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>🧠 Utilizzo RAM Medio (MB)</h3>
+                    <canvas id="ramChart"></canvas>
+                </div>
+            </div>
+
+            <h2>Tabella Riassuntiva Medie</h2>
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>Algoritmo</th>
+                        <th>Tool</th>
+                        <th>Score Medio (%)</th>
+                        <th>Tempo Medio (s)</th>
+                        <th>CPU (%)</th>
+                        <th>RAM (MB)</th>
+                        <th>Dettagli Mutanti (Sopravvissuti)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    { "".join([f'''
+                    <tr>
+                        <td rowspan="2"><strong>{alg}</strong></td>
+                        <td>Mutmut</td>
+                        <td>{stats[alg]['mutmut']['score']:.1f}%</td>
+                        <td>{stats[alg]['mutmut']['time']:.2f}s</td>
+                        <td>{stats[alg]['mutmut']['cpu']:.1f}%</td>
+                        <td>{stats[alg]['mutmut']['ram']:.1f} MB</td>
+                        <td>
+                            {''.join([f'<a href="mutmut/{alg}_run_{r["run_id"]}_htmlcov/index.html" class="report-btn">Run {r["run_id"]}</a>' for r in [x for x in data if x['algorithm'] == alg]])}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Cosmic Ray</td>
+                        <td>{stats[alg]['cosmic_ray']['score']:.1f}%</td>
+                        <td>{stats[alg]['cosmic_ray']['time']:.2f}s</td>
+                        <td>{stats[alg]['cosmic_ray']['cpu']:.1f}%</td>
+                        <td>{stats[alg]['cosmic_ray']['ram']:.1f} MB</td>
+                        <td>
+                            {''.join([f'<a href="cosmic_ray/{alg}_run_{r["run_id"]}_report.html" class="report-btn cr-btn">Run {r["run_id"]}</a>' for r in [x for x in data if x['algorithm'] == alg]])}
+                        </td>
+                    </tr>
+                    ''' for alg in algs_found]) }
+                </tbody>
+            </table>
         </div>
 
         <script>
-            const ctx = document.getElementById('scoreChart').getContext('2d');
-            new Chart(ctx, {{
+            const algLabels = {algs_found};
+            
+            const chartOptions = {{
+                responsive: true,
+                scales: {{
+                    y: {{ beginAtZero: true, grid: {{ color: '#f0f2f5' }} }},
+                    x: {{ grid: {{ display: false }} }}
+                }},
+                plugins: {{
+                    legend: {{ position: 'top', labels: {{ usePointStyle: true, padding: 20 }} }}
+                }}
+            }};
+
+            // Score Comparison
+            new Chart(document.getElementById('scoreComparisonChart'), {{
                 type: 'bar',
                 data: {{
-                    labels: {labels},
+                    labels: algLabels,
                     datasets: [
                         {{
                             label: 'Mutmut Killed %',
                             data: {mut_scores},
                             backgroundColor: '#3498db',
-                            borderColor: '#2980b9',
-                            borderWidth: 1,
-                            borderRadius: 5
+                            borderRadius: 6
                         }},
                         {{
                             label: 'Cosmic Ray Killed %',
                             data: {cr_scores},
                             backgroundColor: '#e74c3c',
-                            borderColor: '#c0392b',
-                            borderWidth: 1,
-                            borderRadius: 5
+                            borderRadius: 6
                         }}
                     ]
                 }},
                 options: {{
-                    responsive: true,
-                    scales: {{
-                        y: {{
-                            beginAtZero: true,
-                            max: 100,
-                            title: {{ display: true, text: 'Percentuale Mutanti Uccisi (%)', font: {{ weight: 'bold' }} }}
-                        }},
-                        x: {{ grid: {{ display: false }} }}
-                    }},
-                    plugins: {{
-                        legend: {{ position: 'top', labels: {{ padding: 20, font: {{ size: 14 }} }} }},
-                        tooltip: {{ padding: 15, cornerRadius: 10 }}
-                    }}
+                    ...chartOptions,
+                    scales: {{ y: {{ max: 100, title: {{ display: true, text: 'Mutation Score (%)' }} }} }}
                 }}
+            }});
+
+            // Execution Time
+            new Chart(document.getElementById('timeChart'), {{
+                type: 'bar',
+                data: {{
+                    labels: algLabels,
+                    datasets: [
+                        {{
+                            label: 'Mutmut Time (s)',
+                            data: {mut_times},
+                            backgroundColor: '#3498db88',
+                            borderColor: '#3498db',
+                            borderWidth: 1
+                        }},
+                        {{
+                            label: 'Cosmic Ray Time (s)',
+                            data: {cr_times},
+                            backgroundColor: '#e74c3c88',
+                            borderColor: '#e74c3c',
+                            borderWidth: 1
+                        }}
+                    ]
+                }},
+                options: chartOptions
+            }});
+
+            // CPU Chart
+            new Chart(document.getElementById('cpuChart'), {{
+                type: 'bar',
+                data: {{
+                    labels: algLabels,
+                    datasets: [
+                        {{
+                            label: 'Mutmut CPU %',
+                            data: {[stats[alg]['mutmut']['cpu'] for alg in algs_found]},
+                            backgroundColor: '#3498db',
+                            borderRadius: 6
+                        }},
+                        {{
+                            label: 'Cosmic Ray CPU %',
+                            data: {[stats[alg]['cosmic_ray']['cpu'] for alg in algs_found]},
+                            backgroundColor: '#e74c3c',
+                            borderRadius: 6
+                        }}
+                    ]
+                }},
+                options: chartOptions
+            }});
+
+            // RAM Chart
+            new Chart(document.getElementById('ramChart'), {{
+                type: 'bar',
+                data: {{
+                    labels: algLabels,
+                    datasets: [
+                        {{
+                            label: 'Mutmut RAM (MB)',
+                            data: {[stats[alg]['mutmut']['ram'] for alg in algs_found]},
+                            backgroundColor: '#3498db',
+                            borderRadius: 6
+                        }},
+                        {{
+                            label: 'Cosmic Ray RAM (MB)',
+                            data: {[stats[alg]['cosmic_ray']['ram'] for alg in algs_found]},
+                            backgroundColor: '#e74c3c',
+                            borderRadius: 6
+                        }}
+                    ]
+                }},
+                options: chartOptions
             }});
         </script>
     </body>
@@ -304,36 +505,40 @@ def main():
     all_results = []
     
     try:
-        # 2. Esecuzione Benchmark
-        for i in range(NUM_RUNS):
-            run_id = i + 1
-            print(f"\n--- 🔄 Esecuzione Run {run_id}/{NUM_RUNS} ---")
+        # 2. Esecuzione Benchmark per ogni Algoritmo
+        for alg in ALGORITHMS:
+            print(f"\n🚀 === Test Strategia Pynguin: {alg} ===")
             
-            clean_run_cache()
-            pynguin_time = run_pynguin()
-            
-            mutmut_data = run_mutmut(run_id)
-            cr_data = run_cosmic_ray(run_id)
-            
-            run_record = {
-                "run_id": run_id,
-                "pynguin_time_sec": round(pynguin_time, 2),
-                "mutmut": mutmut_data,
-                "cosmic_ray": cr_data
-            }
-            all_results.append(run_record)
-            
-            # Salvataggio incrementale JSON
-            with open(RESULTS_FILE, "w") as f:
-                json.dump(all_results, f, indent=4)
+            for i in range(NUM_RUNS):
+                run_id = i + 1
+                print(f"\n--- 🔄 Esecuzione {alg} | Run {run_id}/{NUM_RUNS} ---")
                 
-            print(f"   ✅ Run {run_id} completata.")
+                clean_run_cache()
+                pynguin_time = run_pynguin(alg)
+                
+                mutmut_data = run_mutmut(run_id, alg)
+                cr_data = run_cosmic_ray(run_id, alg)
+                
+                run_record = {
+                    "algorithm": alg,
+                    "run_id": run_id,
+                    "pynguin_time_sec": round(pynguin_time, 2),
+                    "mutmut": mutmut_data,
+                    "cosmic_ray": cr_data
+                }
+                all_results.append(run_record)
+                
+                # Salvataggio incrementale JSON
+                with open(RESULTS_FILE, "w") as f:
+                    json.dump(all_results, f, indent=4)
+                    
+                print(f"   ✅ Run {run_id} ({alg}) completata.")
             
         # 3. Report Finale
         generate_comparison_report(all_results)
         print(f"\n🎉 Benchmark completato! Controlla la cartella 'results/' per i report.")
     finally:
-        # Ripristina sempre il backup originale anche in caso di crash (es. Ctrl+C)
+        # Ripristina sempre il backup originale anche in caso di crash
         print("\n🔄 Ripristino del codice sorgente originale...")
         if Path("benchmark").exists():
             shutil.rmtree("benchmark")

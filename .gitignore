@@ -27,3 +27,7 @@ session.sqlite
 
 # OS
 .DS_Store
+
+scratch/
+
+coverage.json
