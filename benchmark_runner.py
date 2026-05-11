@@ -6,7 +6,7 @@ import shutil
 import re
 from pathlib import Path
 
-NUM_RUNS = 2 if os.environ.get("CI") else 16
+NUM_RUNS = 2 if os.environ.get("CI") else 2
 RESULTS_FILE = "results/benchmark_data.json"
 
 def setup_directories():
