@@ -6,6 +6,10 @@ __pycache__/
 venv/
 ENV/
 
+# Gemini
+tests/test_gemini.py
+.env
+
 # Pytest & Benchmarks
 .pytest_cache/
 .benchmarks/
@@ -31,3 +35,4 @@ session.sqlite
 scratch/
 
 coverage.json
+

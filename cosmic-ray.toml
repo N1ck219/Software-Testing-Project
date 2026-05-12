@@ -6,7 +6,7 @@ module-path = "benchmark/triangle.py"
 timeout = 10.0
 
 # Il comando per lanciare la tua suite di test
-test-command = "pytest tests/"
+test-command = "PYTHONPATH=benchmark pytest tests/"
 
 # Aggiungi questa sezione per dire a Cosmic Ray di eseguire i test localmente
 [cosmic-ray.distributor]

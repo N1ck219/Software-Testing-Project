@@ -7,12 +7,18 @@ import re
 from pathlib import Path
 import psutil
 import threading
+from dotenv import load_dotenv
+from google import genai
+
+load_dotenv()
 
 # Configurazione Globali
-NUM_RUNS = 2 if os.environ.get("CI") else 2
+NUM_RUNS = 2 if os.environ.get("CI") else 1
 # ALGORITHMS = ["DYNAMOSA", "WHOLE_SUITE", "MIO"]
-ALGORITHMS = ["DYNAMOSA", "MIO"]
+# ALGORITHMS = ["DYNAMOSA", "MIO", "GEMINI"]
+ALGORITHMS = ["GEMINI"]
 PYNGUIN_SEARCH_BUDGET = 60 # Budget in secondi per la ricerca dei test
+RANDOM_SEED = 42 # Seed per la riproducibilità
 RESULTS_FILE = "results/benchmark_data.json"
 
 def monitor_resources(pid, interval=0.5):
@@ -110,21 +116,80 @@ def clean_run_cache():
         path = Path(d)
         if path.exists() and path.is_dir(): shutil.rmtree(path)
 
-    # Svuota la cartella tests per far rigenerare tutto a Pynguin (mantiene .gitkeep)
+    # Svuota la cartella tests per far rigenerare tutto a Pynguin (mantiene .gitkeep e test_gemini.py)
     tests_path = Path("tests")
     if tests_path.exists() and tests_path.is_dir():
         for item in tests_path.iterdir():
             if item.is_dir(): shutil.rmtree(item)
-            elif item.name != ".gitkeep": item.unlink()
+            elif item.name not in [".gitkeep", "test_gemini.py"]: item.unlink()
     elif not tests_path.exists():
         tests_path.mkdir(exist_ok=True)
         (tests_path / ".gitkeep").touch()
 
-def run_pynguin(algorithm):
+def run_gemini(seed):
+    """Genera test tramite Gemini se non esistono già, altrimenti usa i test salvati."""
+    print(f"   🤖 Generazione test con Gemini [Seed: {seed}]...")
+    test_file_path = Path("tests/test_gemini.py")
+    if test_file_path.exists():
+        print("   ✅ File test_gemini.py già presente, riutilizzo quello salvato.")
+        return 0.0
+    
+    start_time = time.time()
+    
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        print("   ❌ Errore: GEMINI_API_KEY non trovata. Impossibile generare i test.")
+        return 0.0
+    
+    client = genai.Client(api_key=api_key)
+    
+    source_code_path = Path("benchmark/triangle.py")
+    if not source_code_path.exists():
+        print(f"   ❌ Errore: file sorgente {source_code_path} non trovato.")
+        return 0.0
+        
+    source_code = source_code_path.read_text()
+    
+    prompt = f"""Sei un esperto di software testing in Python.
+Scrivi una test suite pytest completa e robusta per coprire tutti i branch e path logici del seguente codice sorgente.
+Devi generare SOLO e UNICAMENTE codice Python valido per pytest, senza nessun testo introduttivo, senza spiegazioni, e senza racchiudere il codice in blocchi markdown tipo ```python.
+Includi l'istruzione 'from triangle import classify_triangle' all'inizio del file.
+    
+Codice:
+{source_code}
+"""
+    
+    print("   ⏳ Chiamata all'API di Gemini in corso...")
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt
+        )
+        test_code = response.text
+        
+        # Pulizia base se Gemini include comunque i backtick
+        if test_code.startswith("```python"):
+            test_code = test_code[9:]
+        if test_code.startswith("```"):
+            test_code = test_code[3:]
+        if test_code.endswith("```"):
+            test_code = test_code[:-3]
+            
+        test_file_path.write_text(test_code.strip())
+        print(f"   ✨ Test generati con successo in {test_file_path}")
+    except Exception as e:
+        print(f"   ❌ Errore durante la chiamata a Gemini: {e}")
+        
+    return time.time() - start_time
+
+
+def run_pynguin(algorithm, seed, run_id):
     """Esegue Pynguin per generare una nuova suite di test con l'algoritmo specificato."""
-    print(f"   🤖 Generazione test con Pynguin ({algorithm})...")
+    print(f"   🤖 Generazione test con Pynguin ({algorithm}) [Seed: {seed}]...")
     env = os.environ.copy()
     env["PYNGUIN_DANGER_AWARE"] = "true"
+    
+    report_dir = f"results/pynguin/{algorithm}_run_{run_id}"
     
     cmd = [
         get_bin_path("pynguin"),
@@ -133,7 +198,10 @@ def run_pynguin(algorithm):
         "--output-path", "./tests",
         "--assertion-generation", "MUTATION_ANALYSIS",
         "--algorithm", algorithm,
-        "--maximum-search-time", str(PYNGUIN_SEARCH_BUDGET)
+        "--maximum-search-time", str(PYNGUIN_SEARCH_BUDGET),
+        "--seed", str(seed),
+        "--statistics-backend", "CSV",
+        "--report-dir", report_dir
     ]
     
     start_time = time.time()
@@ -156,7 +224,10 @@ def run_mutmut(run_id, algorithm):
     
     start_time = time.time()
     
-    proc = subprocess.Popen([get_bin_path("mutmut"), "run"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "benchmark"
+    
+    proc = subprocess.Popen([get_bin_path("mutmut"), "run"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
     stop_event, monitor_thread, cpu_samples, ram_samples = monitor_resources(proc.pid)
     
     stdout, stderr = proc.communicate()
@@ -199,7 +270,11 @@ def run_cosmic_ray(run_id, algorithm):
     subprocess.run([get_bin_path("cosmic-ray"), "init", "cosmic-ray.toml", "session.sqlite"], capture_output=True)
     
     start_time = time.time()
-    proc = subprocess.Popen([get_bin_path("cosmic-ray"), "exec", "cosmic-ray.toml", "session.sqlite"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "benchmark"
+    
+    proc = subprocess.Popen([get_bin_path("cosmic-ray"), "exec", "cosmic-ray.toml", "session.sqlite"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
     stop_event, monitor_thread, cpu_samples, ram_samples = monitor_resources(proc.pid)
     
     proc.communicate()
@@ -507,14 +582,19 @@ def main():
     try:
         # 2. Esecuzione Benchmark per ogni Algoritmo
         for alg in ALGORITHMS:
-            print(f"\n🚀 === Test Strategia Pynguin: {alg} ===")
+            print(f"\n🚀 === Test Strategia: {alg} ===")
             
             for i in range(NUM_RUNS):
                 run_id = i + 1
                 print(f"\n--- 🔄 Esecuzione {alg} | Run {run_id}/{NUM_RUNS} ---")
                 
                 clean_run_cache()
-                pynguin_time = run_pynguin(alg)
+                run_seed = RANDOM_SEED + (run_id*26)
+                
+                if alg == "GEMINI":
+                    pynguin_time = run_gemini(run_seed)
+                else:
+                    pynguin_time = run_pynguin(alg, run_seed, run_id)
                 
                 mutmut_data = run_mutmut(run_id, alg)
                 cr_data = run_cosmic_ray(run_id, alg)
@@ -522,6 +602,7 @@ def main():
                 run_record = {
                     "algorithm": alg,
                     "run_id": run_id,
+                    "seed": run_seed,
                     "pynguin_time_sec": round(pynguin_time, 2),
                     "mutmut": mutmut_data,
                     "cosmic_ray": cr_data
