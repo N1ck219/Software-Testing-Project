@@ -6,3 +6,4 @@
 6) Oltre al tempo, potreste monitorare:
     - [x] Utilizzo della CPU/RAM: Cosmic Ray è più lento, ma consuma più risorse? (Implementato)
     - Parallelizzazione: Cosmic Ray supporta diversi "distributors". Potreste confrontare le performance del distributor local con l'esecuzione parallela per vedere quanto scala bene.
+7) Provare a capire se invece che pynguin possiamo usare un modello AI (difficile da svere risultati costanti, ma interessante da provare)
