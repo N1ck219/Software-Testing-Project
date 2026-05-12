@@ -7,7 +7,6 @@ venv/
 ENV/
 
 # Gemini
-tests/test_gemini.py
 .env
 
 # Pytest & Benchmarks
@@ -19,6 +18,7 @@ results/**/*
 !results/**/
 !results/**/.gitkeep
 tests/*
+!tests/test_gemini.py
 !tests/.gitkeep
 pynguin-report/**/*
 !pynguin-report/**/

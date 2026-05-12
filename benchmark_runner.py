@@ -15,8 +15,8 @@ load_dotenv()
 # Configurazione Globali
 NUM_RUNS = 2 if os.environ.get("CI") else 1
 # ALGORITHMS = ["DYNAMOSA", "WHOLE_SUITE", "MIO"]
-# ALGORITHMS = ["DYNAMOSA", "MIO", "GEMINI"]
-ALGORITHMS = ["GEMINI"]
+ALGORITHMS = ["DYNAMOSA", "MIO", "GEMINI"]
+# ALGORITHMS = ["GEMINI"]
 PYNGUIN_SEARCH_BUDGET = 60 # Budget in secondi per la ricerca dei test
 RANDOM_SEED = 42 # Seed per la riproducibilità
 RESULTS_FILE = "results/benchmark_data.json"
@@ -150,12 +150,19 @@ def run_gemini(seed):
         
     source_code = source_code_path.read_text()
     
-    prompt = f"""Sei un esperto di software testing in Python.
-Scrivi una test suite pytest completa e robusta per coprire tutti i branch e path logici del seguente codice sorgente.
-Devi generare SOLO e UNICAMENTE codice Python valido per pytest, senza nessun testo introduttivo, senza spiegazioni, e senza racchiudere il codice in blocchi markdown tipo ```python.
-Includi l'istruzione 'from triangle import classify_triangle' all'inizio del file.
-    
-Codice:
+    prompt = f"""Sei un esperto di software testing e mutation testing in Python.
+Il tuo obiettivo è scrivere una test suite pytest "cattivissima" che sia in grado di rilevare anche le più piccole alterazioni (mutanti) nel codice sorgente fornito.
+
+REGOLE DI GENERAZIONE:
+1. Focalizzati sui valori limite (Boundary Value Analysis): prova valori appena sopra, appena sotto e esattamente sulle soglie (es. 0, 1, -1, valori molto grandi, valori quasi uguali).
+2. Considera i casi degeneri: triangoli con somma di due lati esattamente uguale al terzo, o quasi uguale.
+3. Massimizza la diversità: non limitarti a pochi test, genera permutazioni diverse per ogni categoria (es. Isoscele con lati (5,5,3), (5,3,5), (3,5,5)).
+4. Pensa come un "killer di mutanti": scrivi test che fallirebbero se un operatore `>=` venisse cambiato in `>`, o se un `or` diventasse `and`.
+5. Genera SOLO codice Python valido per pytest.
+6. Niente spiegazioni, niente testo introduttivo, niente blocchi markdown.
+7. Includi 'from triangle import classify_triangle' all'inizio.
+
+Codice Sorgente:
 {source_code}
 """
     
