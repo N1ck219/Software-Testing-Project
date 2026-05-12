@@ -267,20 +267,34 @@ def run_mutmut(run_id, algorithm):
 def run_cosmic_ray(run_id, algorithm):
     """Esegue Cosmic Ray, estrae il punteggio e genera il report HTML."""
     print("   🚀 Esecuzione Cosmic Ray...")
-    subprocess.run([get_bin_path("cosmic-ray"), "init", "cosmic-ray.toml", "session.sqlite"], capture_output=True)
-    
-    start_time = time.time()
     
     env = os.environ.copy()
     env["PYTHONPATH"] = "benchmark"
     
-    proc = subprocess.Popen([get_bin_path("cosmic-ray"), "exec", "cosmic-ray.toml", "session.sqlite"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
-    stop_event, monitor_thread, cpu_samples, ram_samples = monitor_resources(proc.pid)
-    
-    proc.communicate()
+    start_time = time.time()    # per il benchmark misuro anche la fase di init di Cosmic Ray, che è parte integrante del processo di mutazione
+
+    subprocess.run(
+        [get_bin_path("cosmic-ray"), "init", "cosmic-ray.toml", "session.sqlite"],
+        capture_output=True,
+        env=env,
+    )
+
+    proc_init = subprocess.Popen(
+    [get_bin_path("cosmic-ray"), "init", "cosmic-ray.toml", "session.sqlite"],
+    stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
+    )
+    proc_init.communicate()
+
+    proc_exec = subprocess.Popen(
+        [get_bin_path("cosmic-ray"), "exec", "cosmic-ray.toml", "session.sqlite"],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env
+    )
+    stop_event, monitor_thread, cpu_samples, ram_samples = monitor_resources(proc_exec.pid)
+
+    proc_exec.communicate()
     stop_event.set()
     monitor_thread.join()
-    
+
     execution_time = time.time() - start_time
     avg_cpu, avg_ram = get_averages(cpu_samples, ram_samples)
     
