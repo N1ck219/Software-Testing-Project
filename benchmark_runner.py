@@ -15,8 +15,10 @@ load_dotenv()
 # Configurazione Globali
 NUM_RUNS = 2 if os.environ.get("CI") else 1
 # ALGORITHMS = ["DYNAMOSA", "WHOLE_SUITE", "MIO"]
-ALGORITHMS = ["DYNAMOSA", "MIO", "GEMINI"]
+# ALGORITHMS = ["DYNAMOSA", "MIO", "GEMINI"]
 # ALGORITHMS = ["GEMINI"]
+ALGORITHMS = ["DYNAMOSA", "GEMINI"]
+
 PYNGUIN_SEARCH_BUDGET = 60 # Budget in secondi per la ricerca dei test
 RANDOM_SEED = 42 # Seed per la riproducibilità
 RESULTS_FILE = "results/benchmark_data.json"
@@ -116,12 +118,12 @@ def clean_run_cache():
         path = Path(d)
         if path.exists() and path.is_dir(): shutil.rmtree(path)
 
-    # Svuota la cartella tests per far rigenerare tutto a Pynguin (mantiene .gitkeep e test_gemini.py)
+    # Svuota la cartella tests per far rigenerare tutto a Pynguin (mantiene solo .gitkeep)
     tests_path = Path("tests")
     if tests_path.exists() and tests_path.is_dir():
         for item in tests_path.iterdir():
             if item.is_dir(): shutil.rmtree(item)
-            elif item.name not in [".gitkeep", "test_gemini.py"]: item.unlink()
+            elif item.name not in [".gitkeep"]: item.unlink()
     elif not tests_path.exists():
         tests_path.mkdir(exist_ok=True)
         (tests_path / ".gitkeep").touch()
@@ -130,8 +132,10 @@ def run_gemini(seed):
     """Genera test tramite Gemini se non esistono già, altrimenti usa i test salvati."""
     print(f"   🤖 Generazione test con Gemini [Seed: {seed}]...")
     test_file_path = Path("tests/test_gemini.py")
-    if test_file_path.exists():
-        print("   ✅ File test_gemini.py già presente, riutilizzo quello salvato.")
+    cache_file_path = Path("test_gemini_cache.py")
+    if cache_file_path.exists():
+        print("   ✅ File test_gemini_cache.py già presente, riutilizzo quello salvato.")
+        shutil.copy(cache_file_path, test_file_path)
         return 0.0
     
     start_time = time.time()
@@ -161,6 +165,8 @@ REGOLE DI GENERAZIONE:
 5. Genera SOLO codice Python valido per pytest.
 6. Niente spiegazioni, niente testo introduttivo, niente blocchi markdown.
 7. Includi 'from triangle import classify_triangle' all'inizio.
+8. Evita valori di precisione estremi (es. non scendere sotto 1e-9) per evitare problemi di arrotondamento floating point.
+
 
 Codice Sorgente:
 {source_code}
@@ -183,6 +189,7 @@ Codice Sorgente:
             test_code = test_code[:-3]
             
         test_file_path.write_text(test_code.strip())
+        cache_file_path.write_text(test_code.strip())
         print(f"   ✨ Test generati con successo in {test_file_path}")
     except Exception as e:
         print(f"   ❌ Errore durante la chiamata a Gemini: {e}")
