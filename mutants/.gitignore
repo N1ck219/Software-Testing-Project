@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Gemini
+.env
+
+# Pytest & Benchmarks
+.pytest_cache/
+.benchmarks/
+
+# Execution Results & Reports
+results/**/*
+!results/**/
+!results/**/.gitkeep
+tests/*
+!tests/.gitkeep
+pynguin-report/**/*
+!pynguin-report/**/
+!pynguin-report/**/.gitkeep
+.mutmut-cache
+.coverage
+htmlcov/
+session.sqlite
+
+
+# OS
+.DS_Store
+
+scratch/
+
+coverage.json
+

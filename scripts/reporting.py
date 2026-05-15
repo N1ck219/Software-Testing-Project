@@ -10,7 +10,7 @@ import threading
 from dotenv import load_dotenv
 from google import genai
 
-from scripts.config import NUM_RUNS
+from scripts.config import NUM_RUNS, TARGET_MODULE
 
 def generate_comparison_report(data):
     """Genera la dashboard HTML con confronto tra algoritmi e strumenti."""
@@ -73,6 +73,7 @@ def generate_comparison_report(data):
         <div class="container">
             <div class="header">
                 <h1>📊 Strategie Pynguin a Confronto: {', '.join(algs_found)}</h1>
+                <p style="font-size: 20px; color: #3498db; margin-top: -10px;">📦 Modulo Target: <strong>{TARGET_MODULE}</strong></p>
                 <p>Analisi delle performance basata su <strong>{NUM_RUNS} Run</strong> per ogni strategia</p>
             </div>
 

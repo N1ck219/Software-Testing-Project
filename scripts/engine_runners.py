@@ -9,8 +9,8 @@ import psutil
 import threading
 from dotenv import load_dotenv
 from google import genai
-
 from scripts.config import PYNGUIN_SEARCH_BUDGET, TARGET_MODULE
+
 from scripts.system_utils import get_bin_path
 from scripts.monitor import monitor_resources, get_averages
 
@@ -22,8 +22,9 @@ def run_gemini(seed):
     test_file_path = Path("tests/test_gemini.py")
     cache_file_path = Path(f"gemini_cache_{TARGET_MODULE}.py")
     if cache_file_path.exists():
-        print("   ✅ File test_gemini_cache.py già presente, riutilizzo quello salvato.")
+        print(f"   ✅ File {cache_file_path} già presente, riutilizzo quello salvato.")
         shutil.copy(cache_file_path, test_file_path)
+        sanitize_gemini_tests(test_file_path)
         return 0.0
     
     start_time = time.time()
@@ -47,13 +48,12 @@ def run_gemini(seed):
     prompt = f"""Sei un esperto QA engineer e specialista in Mutation Testing in Python.
 Il tuo compito è analizzare il codice sorgente fornito e generare una test suite pytest estremamente rigorosa. L'obiettivo è massimizzare il Mutation Score (uccidere il maggior numero di mutanti), mantenendo rigorosamente il 100% di successo sul codice originale.
 
-REGOLE CRITICHE (PENA IL FALLIMENTO DELL'INTERO BENCHMARK):
-1. **BASELINE PASS RATE 100%**: È FONDAMENTALE che ogni test passi con successo sul codice originale. Se c'è la minima probabilità che un test fallisca per arrotondamenti o comportamenti ambigui, NON includerlo. Tutti gli `assert` devono riflettere la logica esatta del codice fornito, non la logica ideale.
-2. **LIMITI SUI FLOAT**: Per evitare errori matematici di macchina (`float` in Python), NON usare numeri con più di 5 cifre decimali e NON usare numeri più grandi di 1e9. Evita somme che possono causare imprecisioni (es. `1e9 + 1`).
-3. **BOUNDARY VALUE & EDGE CASES**: Concentrati sui limiti fisici e logici (es. se c'è `x > 0`, testa `-0.001`, `0`, `0.001`). Testa input estremi ma realistici entro i limiti definiti al punto 2.
-4. **KILLER DI MUTANTI**: Scrivi asserzioni precise pensate per fallire se un operatore relazionale (`<`, `<=`, `==`) o logico (`and`, `or`) viene alterato. Sfrutta a pieno `@pytest.mark.parametrize` per inserire decine di casistiche.
-5. **IMPORTAZIONE CORRETTA**: Il codice sorgente fornito corrisponde al modulo `{module_name}`. Analizza il codice per capire quali classi o funzioni testare e inserisci gli import adeguati all'inizio del file (es. `from {module_name} import ...`).
-6. **FORMATO**: Genera SOLO ed ESCLUSIVAMENTE codice Python puro pronto per pytest. Niente markdown, niente spiegazioni, niente testo.
+REGOLE CRITICHE (UNIVERSALI):
+1. **FEDELTÀ ASSOLUTA AL CODICE**: Non testare la "logica ideale" o come "dovrebbe essere" una funzione secondo la conoscenza comune. Analizza il codice fornito riga per riga: se il codice accetta un input tecnicamente errato senza lanciare eccezioni, il tuo test deve riflettere questo comportamento.
+2. **STABILITÀ DEI TIPI**: Usa SOLO input del tipo previsto (es. stringhe per funzioni che manipolano stringhe). NON testare `None`, `True/False`, numeri o liste a meno che il codice non implementi esplicitamente controlli di tipo (`isinstance`). Crash non gestiti (es. AttributeError su None) fanno fallire il benchmark.
+3. **GESTIONE ECCEZIONI**: Usa `pytest.raises` SOLO se vedi esplicitamente l'istruzione `raise` nel codice sorgente fornito. Non inventare validazioni che il codice non implementa.
+4. **PUNTEGGIO vs STABILITÀ**: È meglio avere meno test che avere un solo test che fallisce sulla baseline. Se c'è la minima ambiguità sul risultato, NON includerlo.
+5. **IMPORTAZIONE E FORMATO**: Usa `from {module_name} import *` e genera SOLO codice Python puro pronto per pytest. Niente markdown, niente spiegazioni.
 
 Codice Sorgente ({module_name}.py):
 {source_code}
@@ -78,10 +78,56 @@ Codice Sorgente ({module_name}.py):
         test_file_path.write_text(test_code.strip())
         cache_file_path.write_text(test_code.strip())
         print(f"   ✨ Test generati con successo in {test_file_path}")
+        
     except Exception as e:
         print(f"   ❌ Errore durante la chiamata a Gemini: {e}")
-        
+    
+    # Sanitizzazione automatica finale (sempre eseguita)
+    sanitize_gemini_tests(test_file_path)
     return time.time() - start_time
+
+
+def sanitize_gemini_tests(test_file_path):
+    """Esegue pytest e commenta i test che falliscono per garantire una baseline 100% passante."""
+    print(f"   🧹 Sanitizzazione test Gemini ({test_file_path})...")
+    pwd = os.path.abspath(os.getcwd())
+    env = os.environ.copy()
+    env["PYTHONPATH"] = f"{pwd}/libs:{pwd}/benchmark:{pwd}:{env.get('PYTHONPATH', '')}"
+
+    max_iterations = 5 # Evitiamo loop infiniti
+    for i in range(max_iterations):
+        # Eseguiamo pytest e catturiamo i fallimenti
+        result = subprocess.run(
+            [".venv/bin/pytest", "--tb=short", str(test_file_path)],
+            capture_output=True, text=True, env=env
+        )
+        
+        if result.returncode == 0:
+            print("   ✅ Tutti i test Gemini passano!")
+            return True
+
+        # Troviamo i nomi dei test falliti (supportando classi e parametrizzazione)
+        failed_tests = re.findall(r"FAILED\s+tests/test_gemini\.py::(?:.*::)?(\w+)", result.stdout)
+        
+        if not failed_tests:
+            print("   ⚠️ Impossibile identificare i test falliti singolarmente. Errore di collezione o sintassi.")
+            print(f"DEBUG STDOUT:\n{result.stdout[-1000:]}")
+            print(f"DEBUG STDERR:\n{result.stderr[-1000:]}")
+            break
+
+        print(f"   🚫 Rimozione di {len(set(failed_tests))} test falliti...")
+        
+        content = test_file_path.read_text()
+        if "import pytest" not in content:
+            content = "import pytest\n" + content
+            
+        for base_name in set(failed_tests):
+            # Commentiamo la funzione del test mantenendo l'indentazione
+            content = re.sub(rf"(\s+)(def\s+{base_name}\()", r"\1@pytest.mark.skip(reason='Auto-sanitized')\n\1\2", content)
+        
+        test_file_path.write_text(content)
+    
+    return False
 
 
 def run_pynguin(algorithm, seed, run_id):
@@ -107,12 +153,21 @@ def run_pynguin(algorithm, seed, run_id):
     ]
     
     start_time = time.time()
-    result = subprocess.run(cmd, env=env, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"   ❌ Errore durante l'esecuzione di Pynguin (Exit Code: {result.returncode}):")
-        if result.stdout: print(f"--- STDOUT ---\n{result.stdout}")
-        if result.stderr: print(f"--- STDERR ---\n{result.stderr}")
-    return time.time() - start_time
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, env=env, check=True)
+        pynguin_time = time.time() - start_time
+        
+        # Sanitizzazione dei test generati (correzione import re._parser per Python 3.10+)
+        test_file = f"tests/test_{TARGET_MODULE}.py"
+        if os.path.exists(test_file):
+            subprocess.run(f"sed -i 's/import re._parser/import re/g' {test_file}", shell=True)
+            subprocess.run(f"sed -i 's/re._parser/re/g' {test_file}", shell=True)
+            
+    except subprocess.CalledProcessError as e:
+        print(f"   ❌ Errore durante l'esecuzione di Pynguin (Exit Code: {e.returncode}):")
+        print(f"--- STDOUT ---\n{e.stdout}\n--- STDERR ---\n{e.stderr}")
+        return 0
+    return pynguin_time
 
 def run_mutmut(run_id, algorithm):
     """Esegue Mutmut, estrae il punteggio e genera il report HTML."""
@@ -120,30 +175,60 @@ def run_mutmut(run_id, algorithm):
 
     is_ci = os.environ.get("CI")
     runner_cmd = "pytest" if is_ci else ".venv/bin/pytest"
+    # Creiamo un file setup.cfg temporaneo per mutmut con percorsi ASSOLUTI
+    pwd = os.path.abspath(os.getcwd())
+    libs_path = os.path.join(pwd, "libs")
+    benchmark_path = os.path.join(pwd, "benchmark")
     
-    setup_cfg_content = f"""[mutmut]
+    # Determiniamo il file di test corretto in base alla strategia
+    if algorithm == "GEMINI":
+        test_file = f"{pwd}/tests/test_gemini.py"
+    else:
+        test_file = f"{pwd}/tests/test_{TARGET_MODULE}.py"
+
+    setup_cfg = f"""[mutmut]
 paths_to_mutate=benchmark/{TARGET_MODULE}.py
-runner={runner_cmd}
+backup=False
+runner=sh -c "PYTHONPATH={libs_path}:{benchmark_path}:{pwd} .venv/bin/pytest {test_file}"
+tests_dir=tests/
 """
     with open("setup.cfg", "w") as f:
-        f.write(setup_cfg_content)
+        f.write(setup_cfg)
+    
+    # Pulizia forzata della cache di mutmut e python
+    if os.path.exists(".mutmut-cache"):
+        os.remove(".mutmut-cache")
+    subprocess.run("find . -name '__pycache__' -type d -exec rm -rf {} +", shell=True)
+    subprocess.run("find . -name '.pytest_cache' -type d -exec rm -rf {} +", shell=True)
     
     start_time = time.time()
     
     env = os.environ.copy()
-    env["PYTHONPATH"] = f"libs:benchmark:{env.get('PYTHONPATH', '')}"
+    pwd = os.path.abspath(os.getcwd())
+    env["PYTHONPATH"] = f"{pwd}/libs:{pwd}/benchmark:{pwd}:{env.get('PYTHONPATH', '')}"
     
-    proc = subprocess.Popen([get_bin_path("mutmut"), "run"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
+    # Eseguiamo mutmut catturando solo lo stdout (per il riassunto)
+    # e buttando via lo stderr (per nascondere barre di progresso e icone rotanti)
+    proc = subprocess.Popen(
+        [get_bin_path("mutmut"), "run"], 
+        stdout=subprocess.PIPE, 
+        stderr=subprocess.DEVNULL, 
+        text=True,
+        env=env
+    )
     stop_event, monitor_thread, cpu_samples, ram_samples = monitor_resources(proc.pid)
     
-    stdout, stderr = proc.communicate()
+    stdout, _ = proc.communicate()
+    
     stop_event.set()
     monitor_thread.join()
     
-    if proc.returncode != 0:
+    if proc.returncode != 0 and proc.returncode not in [1, 2]:
         print(f"   ❌ Errore durante l'esecuzione di Mutmut (Exit Code: {proc.returncode}):")
-        if stdout: print(f"--- STDOUT ---\n{stdout}")
-        if stderr: print(f"--- STDERR ---\n{stderr}")
+        if stdout:
+            # Puliamo lo stdout dalle icone rotanti e messaggi di "running" ripetuti
+            clean_stdout = "\n".join([line for line in stdout.splitlines() if "Running..." not in line])
+            print(f"--- STDOUT ---\n{clean_stdout}")
     
     execution_time = time.time() - start_time
     avg_cpu, avg_ram = get_averages(cpu_samples, ram_samples)
@@ -163,6 +248,10 @@ runner={runner_cmd}
     subprocess.run(bash_cmd, shell=True, executable="/bin/bash")
     
     print(f"   👾 Mutmut: Uccisi {killed} mutanti, Sopravvissuti {survived} mutanti, Tempo {execution_time:.2f}s")
+
+    if killed + survived == 0:
+        print("   ⚠️ Mutmut non ha trovato mutanti. Ecco l'output per il debug:")
+        if stdout: print(f"--- STDOUT ---\n{stdout}")
 
     return {
         "tool": "mutmut",

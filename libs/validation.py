@@ -33,8 +33,8 @@ import string
 import re
 from typing import Any, Optional, List
 
-from aux_mod._regex import *
-from aux_mod.errors import InvalidInputError
+from _regex import *
+from errors import InvalidInputError
 
 
 # PRIVATE API

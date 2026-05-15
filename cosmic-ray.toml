@@ -1,6 +1,6 @@
 [cosmic-ray]
 # Subject Under Test
-module-path = "benchmark/triangle.py"
+module-path = "benchmark/manipulation.py"
 test-command = "env PYTHONPATH=libs:benchmark pytest tests/"
 
 # Timeout per evitare loop infiniti causati da mutanti "cattivi"
