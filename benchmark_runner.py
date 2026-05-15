@@ -47,6 +47,10 @@ def main():
                     pynguin_time = run_pynguin(alg, run_seed, run_id)
                 
                 mutmut_data = run_mutmut(run_id, alg)
+                if mutmut_data["killed"] == 0 and mutmut_data["survived"] == 0:
+                    print("   ⚠️ Mutmut ha fallito la baseline o non ha trovato mutanti. Salto Cosmic Ray per questa run.")
+                    continue 
+                    
                 cr_data = run_cosmic_ray(run_id, alg)
                 
                 run_record = {

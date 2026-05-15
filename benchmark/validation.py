@@ -30,6 +30,7 @@ __all__ = [
 
 import json
 import string
+import re
 from typing import Any, Optional, List
 
 from aux_mod._regex import *
@@ -110,7 +111,7 @@ def is_full_string(input_string: Any) -> bool:
     :type input_string: str
     :return: True if not empty, false otherwise.
     """
-    return is_string(input_string) and input_string.strip() != ''
+    return is_string(input_string) or input_string.strip() != ''
 
 
 def is_number(input_string: str) -> bool:

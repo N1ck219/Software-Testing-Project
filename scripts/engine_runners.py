@@ -89,7 +89,7 @@ def run_pynguin(algorithm, seed, run_id):
     print(f"   🤖 Generazione test con Pynguin ({algorithm}) [Seed: {seed}]...")
     env = os.environ.copy()
     env["PYNGUIN_DANGER_AWARE"] = "true"
-    env["PYTHONPATH"] = f".:{env.get('PYTHONPATH', '')}"
+    env["PYTHONPATH"] = f"libs:benchmark:{env.get('PYTHONPATH', '')}"
     
     report_dir = f"results/pynguin/{algorithm}_run_{run_id}"
     
@@ -108,8 +108,10 @@ def run_pynguin(algorithm, seed, run_id):
     
     start_time = time.time()
     result = subprocess.run(cmd, env=env, capture_output=True, text=True)
-    if result.returncode != 0 and result.stderr.strip():
-        print(f"   ❌ Errore durante l'esecuzione di Pynguin:\n{result.stderr}")
+    if result.returncode != 0:
+        print(f"   ❌ Errore durante l'esecuzione di Pynguin (Exit Code: {result.returncode}):")
+        if result.stdout: print(f"--- STDOUT ---\n{result.stdout}")
+        if result.stderr: print(f"--- STDERR ---\n{result.stderr}")
     return time.time() - start_time
 
 def run_mutmut(run_id, algorithm):
@@ -129,7 +131,7 @@ runner={runner_cmd}
     start_time = time.time()
     
     env = os.environ.copy()
-    env["PYTHONPATH"] = f".:benchmark:{env.get('PYTHONPATH', '')}"
+    env["PYTHONPATH"] = f"libs:benchmark:{env.get('PYTHONPATH', '')}"
     
     proc = subprocess.Popen([get_bin_path("mutmut"), "run"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
     stop_event, monitor_thread, cpu_samples, ram_samples = monitor_resources(proc.pid)
@@ -138,8 +140,10 @@ runner={runner_cmd}
     stop_event.set()
     monitor_thread.join()
     
-    if proc.returncode != 0 and stderr.strip():
-        print(f"   ❌ Errore durante l'esecuzione di Mutmut:\n{stderr}")
+    if proc.returncode != 0:
+        print(f"   ❌ Errore durante l'esecuzione di Mutmut (Exit Code: {proc.returncode}):")
+        if stdout: print(f"--- STDOUT ---\n{stdout}")
+        if stderr: print(f"--- STDERR ---\n{stderr}")
     
     execution_time = time.time() - start_time
     avg_cpu, avg_ram = get_averages(cpu_samples, ram_samples)
@@ -176,7 +180,7 @@ def run_cosmic_ray(run_id, algorithm):
     print("   🚀 Esecuzione Cosmic Ray...")
     
     env = os.environ.copy()
-    env["PYTHONPATH"] = f".:benchmark:{env.get('PYTHONPATH', '')}"
+    env["PYTHONPATH"] = f"libs:benchmark:{env.get('PYTHONPATH', '')}"
     
     start_time = time.time()    # per il benchmark misuro anche la fase di init di Cosmic Ray, che è parte integrante del processo di mutazione
 
@@ -184,7 +188,7 @@ def run_cosmic_ray(run_id, algorithm):
     toml_content = f"""[cosmic-ray]
 # Subject Under Test
 module-path = "benchmark/{TARGET_MODULE}.py"
-test-command = "env PYTHONPATH=.:benchmark pytest tests/"
+test-command = "env PYTHONPATH=libs:benchmark pytest tests/"
 
 # Timeout per evitare loop infiniti causati da mutanti "cattivi"
 timeout = 10.0
