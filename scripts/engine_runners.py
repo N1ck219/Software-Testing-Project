@@ -10,7 +10,7 @@ import threading
 from dotenv import load_dotenv
 from google import genai
 
-from scripts.config import PYNGUIN_SEARCH_BUDGET
+from scripts.config import PYNGUIN_SEARCH_BUDGET, TARGET_MODULE
 from scripts.system_utils import get_bin_path
 from scripts.monitor import monitor_resources, get_averages
 
@@ -20,7 +20,7 @@ def run_gemini(seed):
     """Genera test tramite Gemini se non esistono già, altrimenti usa i test salvati."""
     print(f"   🤖 Generazione test con Gemini [Seed: {seed}]...")
     test_file_path = Path("tests/test_gemini.py")
-    cache_file_path = Path("gemini_cache.py")
+    cache_file_path = Path(f"gemini_cache_{TARGET_MODULE}.py")
     if cache_file_path.exists():
         print("   ✅ File test_gemini_cache.py già presente, riutilizzo quello salvato.")
         shutil.copy(cache_file_path, test_file_path)
@@ -35,7 +35,7 @@ def run_gemini(seed):
     
     client = genai.Client(api_key=api_key)
     
-    source_code_path = Path("benchmark/triangle.py")
+    source_code_path = Path(f"benchmark/{TARGET_MODULE}.py")
     if not source_code_path.exists():
         print(f"   ❌ Errore: file sorgente {source_code_path} non trovato.")
         return 0.0
@@ -89,13 +89,14 @@ def run_pynguin(algorithm, seed, run_id):
     print(f"   🤖 Generazione test con Pynguin ({algorithm}) [Seed: {seed}]...")
     env = os.environ.copy()
     env["PYNGUIN_DANGER_AWARE"] = "true"
+    env["PYTHONPATH"] = f".:{env.get('PYTHONPATH', '')}"
     
     report_dir = f"results/pynguin/{algorithm}_run_{run_id}"
     
     cmd = [
         get_bin_path("pynguin"),
         "--project-path", "./benchmark",
-        "--module-name", "triangle",
+        "--module-name", TARGET_MODULE,
         "--output-path", "./tests",
         "--assertion-generation", "MUTATION_ANALYSIS",
         "--algorithm", algorithm,
@@ -106,7 +107,9 @@ def run_pynguin(algorithm, seed, run_id):
     ]
     
     start_time = time.time()
-    subprocess.run(cmd, env=env, capture_output=True, text=True)
+    result = subprocess.run(cmd, env=env, capture_output=True, text=True)
+    if result.returncode != 0 and result.stderr.strip():
+        print(f"   ❌ Errore durante l'esecuzione di Pynguin:\n{result.stderr}")
     return time.time() - start_time
 
 def run_mutmut(run_id, algorithm):
@@ -117,16 +120,16 @@ def run_mutmut(run_id, algorithm):
     runner_cmd = "pytest" if is_ci else ".venv/bin/pytest"
     
     setup_cfg_content = f"""[mutmut]
-    paths_to_mutate=benchmark/
-    runner={runner_cmd}
-    """
+paths_to_mutate=benchmark/{TARGET_MODULE}.py
+runner={runner_cmd}
+"""
     with open("setup.cfg", "w") as f:
         f.write(setup_cfg_content)
     
     start_time = time.time()
     
     env = os.environ.copy()
-    env["PYTHONPATH"] = "benchmark"
+    env["PYTHONPATH"] = f".:benchmark:{env.get('PYTHONPATH', '')}"
     
     proc = subprocess.Popen([get_bin_path("mutmut"), "run"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
     stop_event, monitor_thread, cpu_samples, ram_samples = monitor_resources(proc.pid)
@@ -134,6 +137,9 @@ def run_mutmut(run_id, algorithm):
     stdout, stderr = proc.communicate()
     stop_event.set()
     monitor_thread.join()
+    
+    if proc.returncode != 0 and stderr.strip():
+        print(f"   ❌ Errore durante l'esecuzione di Mutmut:\n{stderr}")
     
     execution_time = time.time() - start_time
     avg_cpu, avg_ram = get_averages(cpu_samples, ram_samples)
@@ -170,9 +176,25 @@ def run_cosmic_ray(run_id, algorithm):
     print("   🚀 Esecuzione Cosmic Ray...")
     
     env = os.environ.copy()
-    env["PYTHONPATH"] = "benchmark"
+    env["PYTHONPATH"] = f".:benchmark:{env.get('PYTHONPATH', '')}"
     
     start_time = time.time()    # per il benchmark misuro anche la fase di init di Cosmic Ray, che è parte integrante del processo di mutazione
+
+    # Crea dinamicamente cosmic-ray.toml per il modulo target
+    toml_content = f"""[cosmic-ray]
+# Subject Under Test
+module-path = "benchmark/{TARGET_MODULE}.py"
+test-command = "env PYTHONPATH=.:benchmark pytest tests/"
+
+# Timeout per evitare loop infiniti causati da mutanti "cattivi"
+timeout = 10.0
+
+# Aggiungi questa sezione per dire a Cosmic Ray di eseguire i test localmente
+[cosmic-ray.distributor]
+name = "local"
+"""
+    with open("cosmic-ray.toml", "w") as f:
+        f.write(toml_content)
 
     subprocess.run(
         [get_bin_path("cosmic-ray"), "init", "cosmic-ray.toml", "session.sqlite"],

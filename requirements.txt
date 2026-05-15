@@ -145,3 +145,4 @@ wcwidth==0.7.0
 websockets==16.0
 yarl==1.23.0
 yattag==1.16.1
+codetiming
