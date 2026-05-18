@@ -39,7 +39,7 @@ def main():
                 print(f"\n--- 🔄 Esecuzione {alg} | Run {run_id}/{NUM_RUNS} ---")
                 
                 clean_run_cache()
-                run_seed = RANDOM_SEED + (run_id*26)
+                run_seed = RANDOM_SEED + (run_id*261)
                 
                 if alg == "GEMINI":
                     pynguin_time = run_gemini(run_seed)

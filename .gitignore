@@ -35,3 +35,12 @@ scratch/
 
 coverage.json
 
+# Logs
+*.log
+
+# Temporary Backups & Runtime Configurations
+benchmark_backup/
+*.bak
+setup.cfg
+cosmic-ray.toml
+

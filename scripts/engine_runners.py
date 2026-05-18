@@ -9,6 +9,7 @@ import psutil
 import threading
 from dotenv import load_dotenv
 from google import genai
+import sqlite3
 from scripts.config import PYNGUIN_SEARCH_BUDGET, TARGET_MODULE
 
 from scripts.system_utils import get_bin_path
@@ -24,7 +25,7 @@ def run_gemini(seed):
     if cache_file_path.exists():
         print(f"   ✅ File {cache_file_path} già presente, riutilizzo quello salvato.")
         shutil.copy(cache_file_path, test_file_path)
-        sanitize_gemini_tests(test_file_path)
+        sanitize_tests(test_file_path)
         return 0.0
     
     start_time = time.time()
@@ -83,13 +84,13 @@ Codice Sorgente ({module_name}.py):
         print(f"   ❌ Errore durante la chiamata a Gemini: {e}")
     
     # Sanitizzazione automatica finale (sempre eseguita)
-    sanitize_gemini_tests(test_file_path)
+    sanitize_tests(test_file_path)
     return time.time() - start_time
 
 
-def sanitize_gemini_tests(test_file_path):
+def sanitize_tests(test_file_path):
     """Esegue pytest e commenta i test che falliscono per garantire una baseline 100% passante."""
-    print(f"   🧹 Sanitizzazione test Gemini ({test_file_path})...")
+    print(f"   🧹 Sanitizzazione test ({test_file_path.name})...")
     pwd = os.path.abspath(os.getcwd())
     env = os.environ.copy()
     env["PYTHONPATH"] = f"{pwd}/libs:{pwd}/benchmark:{pwd}:{env.get('PYTHONPATH', '')}"
@@ -98,21 +99,19 @@ def sanitize_gemini_tests(test_file_path):
     for i in range(max_iterations):
         # Eseguiamo pytest e catturiamo i fallimenti
         result = subprocess.run(
-            [".venv/bin/pytest", "--tb=short", str(test_file_path)],
+            [get_bin_path("pytest"), "--tb=short", str(test_file_path)],
             capture_output=True, text=True, env=env
         )
         
         if result.returncode == 0:
-            print("   ✅ Tutti i test Gemini passano!")
+            print(f"   ✅ Tutti i test in {test_file_path.name} passano!")
             return True
 
         # Troviamo i nomi dei test falliti (supportando classi e parametrizzazione)
-        failed_tests = re.findall(r"FAILED\s+tests/test_gemini\.py::(?:.*::)?(\w+)", result.stdout)
+        escaped_name = re.escape(test_file_path.name)
+        failed_tests = re.findall(rf"FAILED\s+tests/{escaped_name}::(?:.*::)?(\w+)", result.stdout)
         
         if not failed_tests:
-            print("   ⚠️ Impossibile identificare i test falliti singolarmente. Errore di collezione o sintassi.")
-            print(f"DEBUG STDOUT:\n{result.stdout[-1000:]}")
-            print(f"DEBUG STDERR:\n{result.stderr[-1000:]}")
             break
 
         print(f"   🚫 Rimozione di {len(set(failed_tests))} test falliti...")
@@ -128,6 +127,82 @@ def sanitize_gemini_tests(test_file_path):
         test_file_path.write_text(content)
     
     return False
+
+
+def monitor_progress(db_path, db_type, stop_event):
+    """Monitora l'avanzamento del tool leggendo il database SQLite in background e stampando la barra di progresso con ETA."""
+    import sqlite3
+    start_time = time.time()
+    
+    def get_progress_data():
+        if not os.path.exists(db_path):
+            return None, None
+        try:
+            conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+            cursor = conn.cursor()
+            
+            if db_type == "mutmut":
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='Mutant'")
+                if not cursor.fetchone():
+                    conn.close()
+                    return None, None
+                total = cursor.execute("SELECT COUNT(*) FROM Mutant").fetchone()[0]
+                completed = cursor.execute("SELECT COUNT(*) FROM Mutant WHERE status != 'untested'").fetchone()[0]
+            elif db_type == "cosmic_ray":
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='work_items'")
+                if not cursor.fetchone():
+                    conn.close()
+                    return None, None
+                total = cursor.execute("SELECT COUNT(*) FROM work_items").fetchone()[0]
+                completed = cursor.execute("SELECT COUNT(*) FROM work_results").fetchone()[0]
+            else:
+                total, completed = None, None
+                
+            conn.close()
+            return total, completed
+        except Exception:
+            return None, None
+
+    while not stop_event.is_set():
+        time.sleep(0.5)
+        total, completed = get_progress_data()
+        if total is None or total == 0:
+            continue
+            
+        percent = (completed / total) * 100
+        elapsed = time.time() - start_time
+        
+        # Calcolo ETA (tempo stimato di completamento)
+        if completed > 0:
+            speed = completed / elapsed  # mutanti al secondo
+            remaining = total - completed
+            eta_sec = remaining / speed
+            if eta_sec > 60:
+                eta_str = f"{int(eta_sec // 60)}m {int(eta_sec % 60)}s"
+            else:
+                eta_str = f"{int(eta_sec)}s"
+        else:
+            eta_str = "--s"
+            
+        # Barra di progresso
+        bar_width = 15
+        filled_len = int(round(bar_width * completed / float(total)))
+        bar = '█' * filled_len + '░' * (bar_width - filled_len)
+        
+        icon = "👾 Mutmut" if db_type == "mutmut" else "🚀 Cosmic Ray"
+        print(f"\r      {icon} progress: [{bar}] {percent:.1f}% ({completed}/{total}) | ETA: {eta_str}", end="", flush=True)
+
+    # Aggiornamento finale
+    total, completed = get_progress_data()
+    if total is not None and total > 0:
+        percent = (completed / total) * 100
+        bar_width = 15
+        filled_len = int(round(bar_width * completed / float(total)))
+        bar = '█' * filled_len + '░' * (bar_width - filled_len)
+        icon = "👾 Mutmut" if db_type == "mutmut" else "🚀 Cosmic Ray"
+        print(f"\r      {icon} progress: [{bar}] {percent:.1f}% ({completed}/{total}) | Completato!", flush=True)
+    else:
+        print()
 
 
 def run_pynguin(algorithm, seed, run_id):
@@ -162,6 +237,7 @@ def run_pynguin(algorithm, seed, run_id):
         if os.path.exists(test_file):
             subprocess.run(f"sed -i 's/import re._parser/import re/g' {test_file}", shell=True)
             subprocess.run(f"sed -i 's/re._parser/re/g' {test_file}", shell=True)
+            sanitize_tests(Path(test_file))
             
     except subprocess.CalledProcessError as e:
         print(f"   ❌ Errore durante l'esecuzione di Pynguin (Exit Code: {e.returncode}):")
@@ -174,7 +250,7 @@ def run_mutmut(run_id, algorithm):
     print("   👾 Esecuzione Mutmut...")
 
     is_ci = os.environ.get("CI")
-    runner_cmd = "pytest" if is_ci else ".venv/bin/pytest"
+    runner_cmd = get_bin_path("pytest")
     # Creiamo un file setup.cfg temporaneo per mutmut con percorsi ASSOLUTI
     pwd = os.path.abspath(os.getcwd())
     libs_path = os.path.join(pwd, "libs")
@@ -189,7 +265,7 @@ def run_mutmut(run_id, algorithm):
     setup_cfg = f"""[mutmut]
 paths_to_mutate=benchmark/{TARGET_MODULE}.py
 backup=False
-runner=sh -c "PYTHONPATH={libs_path}:{benchmark_path}:{pwd} .venv/bin/pytest {test_file}"
+runner=sh -c "PYTHONPATH={libs_path}:{benchmark_path}:{pwd} {runner_cmd} {test_file}"
 tests_dir=tests/
 """
     with open("setup.cfg", "w") as f:
@@ -218,17 +294,25 @@ tests_dir=tests/
     )
     stop_event, monitor_thread, cpu_samples, ram_samples = monitor_resources(proc.pid)
     
+    # Avviamo il thread di monitoraggio progresso in background
+    progress_stop_event = threading.Event()
+    progress_thread = threading.Thread(
+        target=monitor_progress, 
+        args=(".mutmut-cache", "mutmut", progress_stop_event)
+    )
+    progress_thread.daemon = True
+    progress_thread.start()
+    
     stdout, _ = proc.communicate()
     
     stop_event.set()
     monitor_thread.join()
     
+    progress_stop_event.set()
+    progress_thread.join()
+    
     if proc.returncode != 0 and proc.returncode not in [1, 2]:
-        print(f"   ❌ Errore durante l'esecuzione di Mutmut (Exit Code: {proc.returncode}):")
-        if stdout:
-            # Puliamo lo stdout dalle icone rotanti e messaggi di "running" ripetuti
-            clean_stdout = "\n".join([line for line in stdout.splitlines() if "Running..." not in line])
-            print(f"--- STDOUT ---\n{clean_stdout}")
+        print("   ❌ Mutmut: errore")
     
     execution_time = time.time() - start_time
     avg_cpu, avg_ram = get_averages(cpu_samples, ram_samples)
@@ -250,8 +334,7 @@ tests_dir=tests/
     print(f"   👾 Mutmut: Uccisi {killed} mutanti, Sopravvissuti {survived} mutanti, Tempo {execution_time:.2f}s")
 
     if killed + survived == 0:
-        print("   ⚠️ Mutmut non ha trovato mutanti. Ecco l'output per il debug:")
-        if stdout: print(f"--- STDOUT ---\n{stdout}")
+        print("   ⚠️ Mutmut: errore")
 
     return {
         "tool": "mutmut",
@@ -307,9 +390,21 @@ name = "local"
     )
     stop_event, monitor_thread, cpu_samples, ram_samples = monitor_resources(proc_exec.pid)
 
+    # Avviamo il thread di monitoraggio progresso in background
+    progress_stop_event = threading.Event()
+    progress_thread = threading.Thread(
+        target=monitor_progress, 
+        args=("session.sqlite", "cosmic_ray", progress_stop_event)
+    )
+    progress_thread.daemon = True
+    progress_thread.start()
+
     proc_exec.communicate()
     stop_event.set()
     monitor_thread.join()
+    
+    progress_stop_event.set()
+    progress_thread.join()
 
     execution_time = time.time() - start_time
     avg_cpu, avg_ram = get_averages(cpu_samples, ram_samples)

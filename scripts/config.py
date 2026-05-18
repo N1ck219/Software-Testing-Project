@@ -11,17 +11,18 @@ from dotenv import load_dotenv
 from google import genai
 
 # Configurazione Globali
-NUM_RUNS = 2 if os.environ.get("CI") else 1
+NUM_RUNS = 2 if os.environ.get("CI") else 3
 
 # ALGORITHMS = ["DYNAMOSA", "WHOLE_SUITE", "MIO"]
 ALGORITHMS = ["DYNAMOSA", "MIO", "GEMINI"]
 # ALGORITHMS = ["DYNAMOSA", "MIO"]
+# ALGORITHMS = ["MIO"]
 # ALGORITHMS = ["DYNAMOSA", "GEMINI"]
 # ALGORITHMS = ["DYNAMOSA"]
 # ALGORITHMS = ["GEMINI"]
+
 # Configurazione Target (il modulo in benchmark/ da testare)
 # TARGET_MODULE = "triangle"
-# TARGET_MODULE = "validation"
 TARGET_MODULE = "manipulation"
 
 PYNGUIN_SEARCH_BUDGET = 60 # Budget in secondi per la ricerca dei test
